@@ -1,0 +1,262 @@
+/* RESET */
+
+html, body, div, span, applet, object, iframe,
+
+, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+ol, ul {
+	list-style: none;
+}
+
+/* END RESET */
+
+html, body {margin:0;padding:0;height:100%;}
+
+body {
+	font-family: 'Open Sans', sans-serif;
+    font-weight: 300;
+	font-size: 15px;
+    padding: 0;
+    margin: 0;
+}
+p {
+	margin: 0 0 15px;
+}
+input {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 200;
+    font-size: 19px;
+    padding-left: 5px;
+}
+a {
+    color: #000;
+    text-decoration: none;
+    font-weight: 300;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.active{
+    color: #444;
+    cursor: default;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.mainContent {
+    color: #010101;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.mainContent h2 {
+    padding: 0 0 15px 0;
+    margin: 30px 0 15px 0;
+    border-bottom: 1px solid #91E0C5;
+    font-size: 16px;
+    font-weight: 400;
+}
+.mainContent ol, .mainContent ul {
+    padding-left: 0px;
+}
+.mainContent a.selected {
+    font-weight: 500;
+    color: black;
+}
+.header {
+    height: 68px;
+    padding: 0 30px;
+    background-color: #91E0C5;
+    white-space: nowrap;
+}
+.header h1 {
+    display: inline-block;
+    font-size: 19px;
+    padding-top: 5px;
+}
+.header img {
+    width: 32px;
+    height: 32px;
+    float: left;
+    margin-left: -8px;
+    padding: 15px 5px 0;
+}
+.header .buttonNav {
+    position: absolute;
+    right: 20px;
+    top: 0px;
+}
+.header .button {
+    display: none;
+    padding: 21px 14px;
+    font-size: 25px;
+}
+.header .button:hover {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+#actionSwitch, #actionOpen {
+}
+.contentNav {
+    float: left;
+    width: 360px;
+}
+.contentNav .icon {
+    float: left;
+    margin-top: 4px;
+    margin-left: -24px;
+    cursor: pointer;
+    color: #aaa;
+}
+.contentNav .icon:hover {
+    color: #000;
+}
+.contentNav .active {
+    font-weight: 600;
+}
+.contentBody {
+    padding: 0 30px 40px;
+}
+.contentBody.halfWidth {
+    width: 50%;
+}
+.content {
+    margin-left: 360px;
+    border-left: 1px solid #91E0C5;
+    min-height: 100%;
+}
+.content li {
+    margin-bottom: 2px;
+}
+
+.tabsList img {
+    height: 16px;
+    width: 16px;
+    padding-right: 7px;
+}
+.tabsList a:hover {
+    text-decoration: underline;
+}
+.tabsList a {
+    font-weight: normal;
+    color: #333;
+    font-size: 13px;
+    text-decoration: none;
+    max-width: 90%;
+    overflow: hidden;
+    display: inline-block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.tabsList .duplicate {
+    color: #E58080;
+}
+
+#banner {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 130px;
+    padding-left: 30px;
+    background-color: #FFC564;
+    transition: all 0.5s ease;
+}
+#banner.hidden {
+    margin-bottom: -130px;
+}
+#banner h1 {
+    font-size: 18px;
+    padding-top: 15px;
+}
+
+#nameForm {
+    max-width: 50%;
+    overflow: hidden;
+    display: inline-block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    vertical-align: sub;
+}
+#nameForm span {
+    font-size: 19px;
+    font-weight: 400;
+}
+#nameForm span:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+#nameForm input {
+    display: none;
+    min-width: 300px;
+}
+
+.blocker,.modal{
+    display: none;
+    position: fixed;
+}
+.blocker {
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1999;
+    background-color: rgba(0, 0, 0, 0.19);
+}
+.modal {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    padding: 20px;
+    width: 70%;
+    height: 410px;
+    margin: auto;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    background-color: white;
+    z-index: 2000;
+}
+.modal textarea {
+    width: 99%;
+    max-width: 99%;
+    height: 60%;
+    max-height: 60%;
+    padding: 5px;
+}
+
+.modal .button {
+    display: inline-block;
+    cursor: pointer;
+    text-align: center;
+    padding: 8px 50px;
+    margin-top: 20px;
+    background-color: #FFB946;
+}
+.modal .button:hover {
+    background-color: #FFAF29;
+    text-decoration: none;
+}

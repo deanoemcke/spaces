@@ -1,0 +1,41 @@
+{
+  "name": "Spaces",
+  "description": "Unobtrusive tab management",
+  "version": "0.20",
+  "permissions": [
+    "tabs",
+    "storage",
+    "unlimitedStorage",
+    "chrome://favicon/*"
+  ],
+  "background": {
+    "scripts": ["js/db.js", "js/dbService.js", "js/spacesService.js", "js/background.js"],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_title": "Spaces",
+    "default_icon": "img/icon128.png",
+    "default_popup": "popup.html"
+  },
+  "options_page": "spaces.html",
+  "icons": {
+    "16": "img/icon16.png",
+    "48": "img/icon48.png",
+    "128": "img/icon128.png"
+  },
+  "web_accessible_resources": [],
+  "incognito": "split",
+  "manifest_version": 2,
+  "minimum_chrome_version": "22",
+
+  "commands": {
+    "spaces-move": {
+      "description": "Move active tab",
+      "suggested_key": { "default": "Ctrl+Shift+M", "mac": "Command+Shift+M" }
+    },
+    "spaces-switch": {
+      "description": "Switch between spaces",
+      "suggested_key": { "default": "Ctrl+Shift+Space", "mac": "Command+Shift+Space" }
+    }
+  }
+}
