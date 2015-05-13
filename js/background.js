@@ -10,7 +10,7 @@ var spaces = (function () {
         spacesOpenWindowId = false,
         previousAllSpacesList = [],
         noop = function() {},
-        debug = true;
+        debug = false;
 
 
     //LISTENERS

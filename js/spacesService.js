@@ -17,7 +17,7 @@
         historyQueue: [],
         eventQueueCount: 0,
         lastVersion: 0,
-        debug: true,
+        debug: false,
 
         noop: function() {},
 
@@ -354,14 +354,12 @@
 
             chrome.windows.get(windowId, {populate: true}, function(curWindow) {
 
-                //check for errors. if so, throw an error
-                //trigger window removed event programatically
-                if (chrome.runtime.lastError || !curWindow) {
+                if (chrome.runtime.lastError) {
                     console.error(chrome.runtime.lastError.message);
                     return;
                 }
 
-                if (self.filterInternalWindows(curWindow)) {
+                if (!curWindow || self.filterInternalWindows(curWindow)) {
                     return;
                 }
 
