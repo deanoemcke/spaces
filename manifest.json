@@ -1,7 +1,7 @@
 {
   "name": "Spaces",
-  "description": "Unobtrusive tab management",
-  "version": "0.20",
+  "description": "Intuitive tab management",
+  "version": "0.21",
   "permissions": [
     "tabs",
     "storage",
@@ -35,7 +35,7 @@
     },
     "spaces-switch": {
       "description": "Switch between spaces",
-      "suggested_key": { "default": "Ctrl+Shift+Space", "mac": "Command+Shift+Space" }
+      "suggested_key": { "default": "Ctrl+Shift+S", "mac": "Command+Shift+S" }
     }
   }
 }

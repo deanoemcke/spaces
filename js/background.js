@@ -41,15 +41,27 @@ var spaces = (function () {
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
         if (checkInternalSpacesWindows(tab.windowId, false)) return;
-        spacesService.handleTabUpdated(tabId, changeInfo, tab, function() {
+
+        spacesService.handleTabUpdated(tab, changeInfo, function() {
             updateSpacesWindow('tabs.onUpdated');
         });
     });
     chrome.windows.onRemoved.addListener(function (windowId) {
 
         if (checkInternalSpacesWindows(windowId, true)) return;
-        spacesService.handleWindowRemoved(windowId, function() {
+        spacesService.handleWindowRemoved(windowId, true, function() {
             updateSpacesWindow('windows.onRemoved');
+        });
+
+        //if this was the last window open and the spaces window is stil open
+        //then close the spaces window also so that chrome exits fully
+        //NOTE: this is a workaround for an issue with the chrome 'restore previous session' option
+        //if the spaces window is the only window open and you try to use it to open a space,
+        //when that space loads, it also loads all the windows from the window that was last closed
+        chrome.windows.getAll({}, function (windows) {
+            if (windows.length === 1 && spacesOpenWindowId ) {
+                chrome.windows.remove(spacesOpenWindowId);
+            }
         });
     });
     //don't need this listener as the tabUpdated listener also fires when a new window is created
