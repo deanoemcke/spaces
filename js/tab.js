@@ -5,6 +5,7 @@
     'use strict';
     var nodes = {},
         globalTabId,
+        globalUrl,
         globalWindowId,
         globalSessionName;
 
@@ -33,34 +34,53 @@
 
     function updateTabDetails() {
 
-        var faviconSrc;
+        var faviconSrc,
+            cleanUrl;
 
-        chrome.runtime.sendMessage({
-            action: 'requestTabDetail',
-            tabId: globalTabId
+        //if we are working with an open chrome tab
+        if (globalTabId) {
 
-        }, function (tab) {
+            chrome.runtime.sendMessage({
+                action: 'requestTabDetail',
+                tabId: globalTabId
 
-            if (tab) {
-                nodes.activeTabTitle.innerHTML = tab.title;
+            }, function (tab) {
 
-                //try to get best favicon url path
-                if (tab.favIconUrl && tab.favIconUrl.indexOf('chrome://theme') < 0) {
-                    faviconSrc = tab.favIconUrl;
-                } else {
-                    faviconSrc = 'chrome://favicon/' + tab.url;
+                if (tab) {
+                    nodes.activeTabTitle.innerHTML = tab.title;
+
+                    //try to get best favicon url path
+                    if (tab.favIconUrl && tab.favIconUrl.indexOf('chrome://theme') < 0) {
+                        faviconSrc = tab.favIconUrl;
+                    } else {
+                        faviconSrc = 'chrome://favicon/' + tab.url;
+                    }
+                    nodes.activeTabFavicon.setAttribute('src', faviconSrc);
+
+                    nodes.moveInput.setAttribute('placeholder', 'Move tab to..');
+
+                    //nodes.windowTitle.innerHTML = tab.title;
+                    //nodes.windowFavicon.setAttribute('href', faviconSrc);
                 }
-                nodes.activeTabFavicon.setAttribute('src', faviconSrc);
+            });
 
-                //nodes.windowTitle.innerHTML = tab.title;
-                //nodes.windowFavicon.setAttribute('href', faviconSrc);
-            }
-        });
+        //else if we are dealing with a url only
+        } else if (globalUrl) {
+
+            cleanUrl = globalUrl.indexOf('://') > 0 ?
+                globalUrl.substr(globalUrl.indexOf('://') + 3, globalUrl.length) :
+                globalUrl;
+            nodes.activeTabTitle.innerHTML = cleanUrl;
+            nodes.activeTabFavicon.setAttribute('src', '/img/new.png');
+
+            nodes.moveInput.setAttribute('placeholder', 'Add tab to..');
+        }
+
     }
 
     function setGlobals() {
 
-        if (location.hash.length > 0 && location.hash.split('&').length === 3) {
+        if (location.hash.length > 0 && location.hash.split('&').length > 0) {
             var hash = location.hash.substr(1, location.hash.length),
                 pairs = hash.split('&'),
                 curKey = false,
@@ -72,6 +92,8 @@
 
                 if (curKey === 'tabId') {
                     globalTabId = curVal;
+                } else if (curKey === 'url') {
+                    globalUrl = curVal !== '' ? decodeURIComponent(curVal) : false;
                 } else if (curKey === 'windowId') {
                     globalWindowId = curVal !== '' ? curVal : false;
                 } else if (curKey === 'sessionName') {
@@ -86,32 +108,50 @@
         var selectedSpaceEl =  document.querySelector('.space.selected'),
             sessionId = selectedSpaceEl.getAttribute('data-sessionId'),
             windowId = selectedSpaceEl.getAttribute('data-windowId'),
-            newSessionName = nodes.moveInput.value;
+            newSessionName = nodes.moveInput.value,
+            params = {};
 
         if (sessionId && sessionId !== 'false') {
 
-            chrome.runtime.sendMessage({
-                action: 'moveTabToSession',
-                tabId: globalTabId,
-                sessionId: sessionId
-            });
+            params.sessionId = sessionId;
+
+            if (globalTabId) {
+                params.action = 'moveTabToSession';
+                params.tabId = globalTabId;
+
+            } else if (globalUrl) {
+                params.action = 'addLinkToSession';
+                params.url = globalUrl;
+            }
 
         } else if (windowId && windowId !== 'false') {
 
-            chrome.runtime.sendMessage({
-                action: 'moveTabToWindow',
-                tabId: globalTabId,
-                windowId: windowId
-            });
+            params.windowId = windowId;
+
+            if (globalTabId) {
+                params.action = 'moveTabToWindow';
+                params.tabId = globalTabId;
+
+            } else if (globalUrl) {
+                params.action = 'addLinkToWindow';
+                params.url = globalUrl;
+            }
 
         } else {
 
-            chrome.runtime.sendMessage({
-                action: 'moveTabToNewSession',
-                tabId: globalTabId,
-                sessionName: newSessionName
-            });
+            params.sessionName = newSessionName;
+
+            if (globalTabId) {
+                params.action = 'moveTabToNewSession';
+                params.tabId = globalTabId;
+
+            } else if (globalUrl) {
+                params.action = 'addLinkToNewSession';
+                params.url = globalUrl;
+            }
         }
+
+        chrome.runtime.sendMessage(params);
         //this window will be closed by background script
     }
     function handleEditSpace() {

@@ -156,14 +156,17 @@
         checkForSessionMatch: function(curWindow) {
 
             var sessionHash = this.generateSessionHash(curWindow.tabs),
-                session = this.getSessionBySessionHash(sessionHash, true);
+                temporarySession = this.getSessionByWindowId(curWindow.id),
+                matchingSession = this.getSessionBySessionHash(sessionHash, true);
 
-            if (session) {
-                if (this.debug) console.log("matching session found: " + session.id + ". linking with window: " + curWindow.id);
+            if (matchingSession) {
+                if (this.debug) console.log("matching session found: " + matchingSession.id + ". linking with window: " + curWindow.id);
 
-                this.matchSessionToWindow(session, curWindow);
+                this.matchSessionToWindow(matchingSession, curWindow);
+            }
 
-            } else {
+            //if no match found and this window does not already have a temporary session
+            if (!matchingSession && !temporarySession) {
                 if (this.debug) console.log("no matching session found. creating temporary session for window: " + curWindow.id);
 
                 //create a new temporary session for this window (with no sessionId or name)
@@ -173,7 +176,7 @@
 
         matchSessionToWindow: function(session, curWindow) {
 
-            //remove any other sessions tied to this windowId (just in case)
+            //remove any other sessions tied to this windowId (temporary sessions)
             for (var i = this.sessions.length - 1; i >= 0; i--) {
                 if (this.sessions[i].windowId === curWindow.id) {
                     if (this.sessions[i].id) {
@@ -417,13 +420,17 @@
                     session.tabs = curWindow.tabs;
                     session.sessionHash = self.generateSessionHash(session.tabs);
 
+
                     //if it is a saved session then update db
                     if (session.id) {
                         self.saveExistingSession(session.id);
                     }
+                }
 
-                //else if no session found, it must be a new window. check for sessionMatch
-                } else {
+                //if no session found, it must be a new window.
+                //if session found without session.id then it must be a temporary session
+                //check for sessionMatch
+                if (!session || !session.id) {
 
                     if (self.debug) console.log("session check triggered");
                     self.checkForSessionMatch(curWindow);

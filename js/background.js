@@ -272,12 +272,41 @@ var spaces = (function () {
             return false;
             break;
 
+        case 'addLinkToNewSession':
+            tabId = _cleanParameter(request.tabId);
+            if (request.sessionName && request.url) {
+                handleAddLinkToNewSession(request.url, request.sessionName, function(result) {
+
+                    if (result) updateSpacesWindow('addLinkToNewSession');
+
+                    //close the requesting tab (should be tab.html)
+                    closePopupWindow();
+                });
+            }
+            return false;
+            break;
+
         case 'moveTabToNewSession':
             tabId = _cleanParameter(request.tabId);
             if (request.sessionName && tabId) {
                 handleMoveTabToNewSession(tabId, request.sessionName, function(result) {
 
                     if (result) updateSpacesWindow('moveTabToNewSession');
+
+                    //close the requesting tab (should be tab.html)
+                    closePopupWindow();
+                });
+            }
+            return false;
+            break;
+
+        case 'addLinkToSession':
+            sessionId = _cleanParameter(request.sessionId);
+
+            if (sessionId && request.url) {
+                handleAddLinkToSession(request.url, sessionId, function(result) {
+
+                    if (result) updateSpacesWindow('addLinkToSession');
 
                     //close the requesting tab (should be tab.html)
                     closePopupWindow();
@@ -294,6 +323,21 @@ var spaces = (function () {
                 handleMoveTabToSession(tabId, sessionId, function(result) {
 
                     if (result) updateSpacesWindow('moveTabToSession');
+
+                    //close the requesting tab (should be tab.html)
+                    closePopupWindow();
+                });
+            }
+            return false;
+            break;
+
+        case 'addLinkToWindow':
+            windowId = _cleanParameter(request.windowId);
+
+            if (windowId && request.url) {
+                handleAddLinkToWindow(request.url, windowId, function(result) {
+
+                    if (result) updateSpacesWindow('addLinkToWindow');
 
                     //close the requesting tab (should be tab.html)
                     closePopupWindow();
@@ -341,7 +385,7 @@ var spaces = (function () {
 
 
 
-    //add listeners for keyboard comands
+    //add listeners for keyboard commands
 
     chrome.commands.onCommand.addListener(function (command) {
 
@@ -354,6 +398,22 @@ var spaces = (function () {
             showSpacesSwitchWindow();
         }
     });
+
+    //add context menu entry
+
+    chrome.contextMenus.create({
+        id: 'spaces-add-link',
+        title: "Add link to space...",
+        contexts:["link"]
+    });
+    chrome.contextMenus.onClicked.addListener(function (info, tab) {
+
+        //handle showing the move tab popup (tab.html)
+        if (info.menuItemId === 'spaces-add-link') {
+            showSpacesMoveWindow(info.linkUrl);
+        }
+    });
+
 
     //runtime extension install listener
     chrome.runtime.onInstalled.addListener(function(details){
@@ -413,7 +473,7 @@ var spaces = (function () {
             });
         }
     }
-    function showSpacesMoveWindow() {
+    function showSpacesMoveWindow(tabUrl) {
 
         //get currently highlighted tab
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -433,7 +493,13 @@ var spaces = (function () {
             session = spacesService.getSessionByWindowId(activeTab.windowId);
 
             name = session ? session.name : '';
-            url = chrome.extension.getURL('tab.html#' + 'tabId=' + activeTab.id + '&windowId=' + activeTab.windowId + '&sessionName=' + name);
+
+            url = chrome.extension.getURL('tab.html#' + 'windowId=' + activeTab.windowId + '&sessionName=' + name);
+            if (tabUrl) {
+                url += '&url=' + encodeURIComponent(tabUrl);
+            } else {
+                url += '&tabId=' + activeTab.id;
+            }
 
             createOrShowSpacesPopupWindow(url);
         });
@@ -847,6 +913,25 @@ var spaces = (function () {
 
         } else {
             spacesService.deleteSession(sessionId, callback);
+            return;
+        }
+    }
+
+    function handleAddLinkToNewSession(url, sessionName, callback) {
+
+        var session = spacesService.getSessionByName(sessionName),
+            newTabs = [{url: url}];
+
+        //if we found a session matching this name then return as an error as we are
+        //supposed to be creating a new session with this name
+        if (session) {
+            callback(false);
+            return;
+
+        //else create a new session with this name containing this url
+        } else {
+            spacesService.saveNewSession(sessionName, newTabs, false, callback);
+            return;
         }
     }
 
@@ -875,6 +960,47 @@ var spaces = (function () {
         });
     }
 
+    function handleAddLinkToSession(url, sessionId, callback) {
+
+        var session = spacesService.getSessionBySessionId(sessionId),
+            newTabs = [{url: url}];
+
+        //if we have not found a session matching this name then return as an error as we are
+        //supposed to be adding the tab to an existing session
+        if (!session) {
+            callback(false);
+            return;
+
+        } else {
+
+            //if session is currently open then add link directly
+            if (session.windowId) {
+
+                handleAddLinkToWindow(url, session.windowId, callback)
+                return;
+
+            //else add tab to saved session in database
+            } else {
+
+                //update session in db
+                session.tabs = session.tabs.concat(newTabs);
+                spacesService.updateSessionTabs(session.id, session.tabs, callback);
+                return;
+            }
+        }
+    }
+
+    function handleAddLinkToWindow(url, windowId, callback) {
+
+        chrome.tabs.create({windowId: windowId, url: url, active: false});
+
+        //NOTE: this move does not seem to trigger any tab event listeners
+        //so we need to update sessions manually
+        spacesService.queueWindowEvent(windowId);
+
+        callback(true);
+    }
+
     function handleMoveTabToSession(tabId, sessionId, callback) {
 
         requestTabDetail(tabId, function(tab) {
@@ -892,14 +1018,7 @@ var spaces = (function () {
 
                 //if session is currently open then move it directly
                 if (session.windowId) {
-                    chrome.tabs.move(tab.id, {windowId: session.windowId, index: -1});
-
-                    //NOTE: this move does not seem to trigger any tab event listeners
-                    //so we need to update sessions manually
-                    spacesService.queueWindowEvent(tab.windowId);
-                    spacesService.queueWindowEvent(session.windowId);
-
-                    callback(false);
+                    moveTabToWindow(tab, session.windowId, callback);
                     return;
 
                 //else add tab to saved session in database
@@ -920,17 +1039,18 @@ var spaces = (function () {
     function handleMoveTabToWindow(tabId, windowId, callback) {
 
         requestTabDetail(tabId, function(tab) {
-
-            chrome.tabs.move(tab.id, {windowId: windowId, index: -1});
-
-            //NOTE: this move does not seem to trigger any tab event listeners
-            //so we need to update sessions manually
-            spacesService.queueWindowEvent(tab.windowId);
-            spacesService.queueWindowEvent(windowId);
-
-            callback(true);
-            return;
+            moveTabToWindow(tab, windowId, callback);
         });
+    }
+    function moveTabToWindow(tab, windowId, callback) {
+        chrome.tabs.move(tab.id, {windowId: windowId, index: -1});
+
+        //NOTE: this move does not seem to trigger any tab event listeners
+        //so we need to update sessions manually
+        spacesService.queueWindowEvent(tab.windowId);
+        spacesService.queueWindowEvent(windowId);
+
+        callback(true);
     }
 
 

@@ -1,16 +1,17 @@
 {
   "name": "Spaces",
   "description": "Intuitive tab management",
-  "version": "0.21",
+  "version": "0.22",
   "permissions": [
     "tabs",
     "storage",
     "unlimitedStorage",
-    "chrome://favicon/*"
+    "chrome://favicon/*",
+    "contextMenus"
   ],
   "background": {
     "scripts": ["js/db.js", "js/dbService.js", "js/spacesService.js", "js/background.js"],
-    "persistent": false
+    "persistent": true
   },
   "browser_action": {
     "default_title": "Spaces",
@@ -26,7 +27,7 @@
   "web_accessible_resources": [],
   "incognito": "split",
   "manifest_version": 2,
-  "minimum_chrome_version": "22",
+  "minimum_chrome_version": "35",
 
   "commands": {
     "spaces-move": {
