@@ -155,9 +155,17 @@
 
         checkForSessionMatch: function(curWindow) {
 
-            var sessionHash = this.generateSessionHash(curWindow.tabs),
-                temporarySession = this.getSessionByWindowId(curWindow.id),
-                matchingSession = this.getSessionBySessionHash(sessionHash, true);
+            var sessionHash,
+                temporarySession,
+                matchingSession;
+
+            if (!curWindow.tabs || curWindow.tabs.length === 0) {
+                return;
+            }
+
+            sessionHash = this.generateSessionHash(curWindow.tabs);
+            temporarySession = this.getSessionByWindowId(curWindow.id);
+            matchingSession = this.getSessionBySessionHash(sessionHash, true);
 
             if (matchingSession) {
                 if (this.debug) console.log("matching session found: " + matchingSession.id + ". linking with window: " + curWindow.id);
@@ -314,6 +322,7 @@
             //add windowId to closedWindowIds. the idea is that once a window is closed it can never be
             //rematched to a new session (hopefully these window ids never get legitimately re-used)
             if (markAsClosed) {
+                if (this.debug) console.log('adding window to closedWindowIds: ' + windowId);
                 this.closedWindowIds[windowId] = true;
                 clearTimeout(this.sessionUpdateTimers[windowId]);
             }
@@ -340,12 +349,6 @@
         //This will cause multiple triggers if time between tab openings is longer than 1 sec
         queueWindowEvent: function(windowId, eventId, callback) {
             var self = this;
-
-            //don't allow event if it pertains to a closed window id
-            if (this.closedWindowIds[windowId]) {
-                if (this.debug) console.log('ignoring event as it pertains to a closed windowId: ' + windowId);
-                return;
-            }
 
             clearTimeout(this.sessionUpdateTimers[windowId]);
 
@@ -389,6 +392,12 @@
                 }
 
                 if (!curWindow || self.filterInternalWindows(curWindow)) {
+                    return;
+                }
+
+                //don't allow event if it pertains to a closed window id
+                if (self.closedWindowIds[windowId]) {
+                    if (self.debug) console.log('ignoring event as it pertains to a closed windowId: ' + windowId);
                     return;
                 }
 
