@@ -76,7 +76,8 @@ var spaces = (function () {
     chrome.windows.onFocusChanged.addListener(function(windowId) {
         if (!debug && spacesPopupWindowId) {
         //if (spacesPopupWindowId) {
-            closePopupWindow();
+            //closePopupWindow();
+            //}
         }
         spacesService.handleWindowFocussed(windowId);
     });
@@ -156,6 +157,13 @@ var spaces = (function () {
         case 'importNewSession':
             if (request.urlList) {
                 handleImportNewSession(request.urlList, sendResponse);
+            }
+            return true; //allow async response
+            break;
+
+        case 'restoreFromBackup':
+            if (request.spaces) {
+                handleRestoreFromBackup(request.spaces, sendResponse);
             }
             return true; //allow async response
             break;
@@ -556,12 +564,27 @@ var spaces = (function () {
     }
 
     function closePopupWindow() {
+
         if (spacesPopupWindowId) {
-            chrome.windows.remove(spacesPopupWindowId, function (result) {
-                if (chrome.runtime.lastError) {
-                    console.log(chrome.runtime.lastError.message);
+
+console.log('closePopupWindow called!');
+console.trace();
+
+            chrome.windows.get(spacesPopupWindowId, {populate: true}, function(spacesWindow) {
+
+                //remove popup from history
+                if (spacesWindow.tabs[0].url) {
+                    chrome.history.deleteUrl({url: spacesWindow.tabs[0].url});
                 }
+
+                //remove popup window
+                chrome.windows.remove(spacesWindow.id, function (result) {
+                    if (chrome.runtime.lastError) {
+                        console.log(chrome.runtime.lastError.message);
+                    }
+                });
             });
+
         }
     }
 
@@ -591,12 +614,12 @@ var spaces = (function () {
 
         //make sure session being overwritten is not currently open
         if (session.windowId) {
-            alert('A session with this name is currently open an cannot be overwritten');
+            alert('A session with the name \'' + session.name + '\' is currently open an cannot be overwritten');
             return false;
 
         //otherwise prompt to see if user wants to overwrite session
         } else {
-            return window.confirm('Replace existing space with the same name?');
+            return window.confirm('Replace existing space: ' + session.name + '?');
         }
     }
 
@@ -864,6 +887,38 @@ var spaces = (function () {
         });
     }
 
+    function handleRestoreFromBackup(spaces, callback) {
+
+        var existingSession, performSave, triggerCallback;
+
+        spaces.forEach(function (space, index, spacesArray) {
+
+            existingSession = spacesService.getSessionByName(space.name);
+            performSave = true;
+            triggerCallback = index === spacesArray.length - 1;
+
+            //if session with same name already exist, then prompt to override the existing session
+            if (existingSession) {
+                if (!checkSessionOverwrite(existingSession)) {
+                    performSave = false;
+
+                //if we choose to overwrite, delete the existing session
+                } else {
+                    handleDeleteSession(existingSession.id, true, noop);
+                }
+            }
+
+            if (performSave) {
+                spacesService.saveNewSession(space.name, space.tabs, false, function (savedSession) {
+                    if (triggerCallback) callback(null);
+                });
+
+            } else if (triggerCallback) {
+                callback(null);
+            }
+        });
+    }
+
     function handleImportNewSession(urlList, callback) {
 
         var tempName = 'Imported space: ',
@@ -890,7 +945,7 @@ var spaces = (function () {
         var existingSession = spacesService.getSessionByName(sessionName);
 
         //if session with same name already exist, then prompt to override the existing session
-        if (existingSession) {
+        if (existingSession && existingSession.id !== sessionId) {
             if (!checkSessionOverwrite(existingSession)) {
                 callback(false);
                 return;

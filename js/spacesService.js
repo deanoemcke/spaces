@@ -298,11 +298,25 @@
         },
         handleWindowRemoved: function(windowId, markAsClosed, callback) {
 
+            var self = this,
+                session;
+
+            //ignore subsequent windowRemoved events for the same windowId (each closing tab will try to call this)
+            if (this.closedWindowIds[windowId]) {
+                callback();
+            }
+
             if (this.debug) console.log('handlingWindowRemoved event. windowId: ' + windowId);
 
-            var self = this,
-                session = this.getSessionByWindowId(windowId);
+            //add windowId to closedWindowIds. the idea is that once a window is closed it can never be
+            //rematched to a new session (hopefully these window ids never get legitimately re-used)
+            if (markAsClosed) {
+                if (this.debug) console.log('adding window to closedWindowIds: ' + windowId);
+                this.closedWindowIds[windowId] = true;
+                clearTimeout(this.sessionUpdateTimers[windowId]);
+            }
 
+            session = this.getSessionByWindowId(windowId);
             if (session) {
                 //if this is a saved session then just remove the windowId reference
                 if (session.id) {
@@ -319,13 +333,6 @@
                 }
             }
 
-            //add windowId to closedWindowIds. the idea is that once a window is closed it can never be
-            //rematched to a new session (hopefully these window ids never get legitimately re-used)
-            if (markAsClosed) {
-                if (this.debug) console.log('adding window to closedWindowIds: ' + windowId);
-                this.closedWindowIds[windowId] = true;
-                clearTimeout(this.sessionUpdateTimers[windowId]);
-            }
             callback();
         },
         handleWindowFocussed: function(windowId) {
@@ -385,7 +392,7 @@
                     console.log(chrome.runtime.lastError.message + '. perhaps its the development console???');
 
                     //if we can't find this window, then better remove references to it from the cached sessions
-                    //don't mark as a removed window however, so that the space can be resynced up it the window
+                    //don't mark as a removed window however, so that the space can be resynced up if the window
                     //does actually still exist (for some unknown reason)
                     self.handleWindowRemoved(windowId, false, self.noop);
                     return;

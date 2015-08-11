@@ -361,26 +361,78 @@
         }
     }
 
+    //import accepts either a newline separated list of urls or a json backup object
     function handleImport() {
 
-        var urlList;
+        var rawInput, urlList, spacesObject;
 
-        urlList = nodes.modalInput.value;
-        if (urlList.trim().length > 0) {
-            urlList = urlList.split('\n');
+        rawInput = nodes.modalInput.value;
 
-            //filter out bad urls
-            urlList = urlList.filter(function(url) {
-                if (url.trim().length > 0 && url.indexOf('://') > 0) return true;
-                return false;
+        //check for json object
+        try {
+            spacesObject = JSON.parse(rawInput);
+            performRestoreFromBackup(spacesObject, function() {
+                updateSpacesList();
             });
+        }
 
-            if (urlList.length > 0) {
-                performSessionImport(urlList, function(session) {
-                    if (session) reroute(session.id, false, true);
+        //otherwise treat as a list of newline separated urls
+        catch (e) {
+
+            if (rawInput.trim().length > 0) {
+                urlList = rawInput.split('\n');
+
+                //filter out bad urls
+                urlList = urlList.filter(function(url) {
+                    if (url.trim().length > 0 && url.indexOf('://') > 0) return true;
+                    return false;
                 });
+
+                if (urlList.length > 0) {
+                    performSessionImport(urlList, function(session) {
+                        if (session) reroute(session.id, false, true);
+                    });
+                }
             }
         }
+    }
+
+    function handleBackup() {
+
+        var leanSpaces, leanTabs, content, filename, encodedUri, link, url;
+
+        content = "data:application/json;charset=utf-8,";
+        leanSpaces = [];
+
+        fetchAllSpaces(function (spaces) {
+
+            //strip out unnessary content from each space
+            spaces.forEach(function(space) {
+
+                leanTabs = [];
+                space.tabs.forEach(function (curTab) {
+                    leanTabs.push({
+                        title: curTab.title,
+                        url: normaliseTabUrl(curTab.url),
+                        favIconUrl: curTab.favIconUrl
+                    });
+                });
+
+                leanSpaces.push({
+                    name: space.name,
+                    tabs: leanTabs
+                });
+            });
+
+            content += JSON.stringify(leanSpaces);
+
+            encodedUri = encodeURI(content);
+            filename = "spaces-backup.json";
+            link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            link.click();
+        });
     }
 
     function handleExport() {
@@ -395,10 +447,7 @@
         fetchSpaceDetail(sessionId, windowId, function(space) {
 
             space.tabs.forEach(function (curTab, tabIndex) {
-                url = curTab.url;
-                if (url.indexOf('suspended.html') > 0 && url.indexOf('uri=') > 0) {
-                    url = url.substring(url.indexOf('uri=') + 4, url.length);
-                }
+                url = normaliseTabUrl(curTab.url);
                 dataString += url + '\n';
             });
             csvContent += dataString;
@@ -412,6 +461,12 @@
         });
     }
 
+    function normaliseTabUrl(url) {
+        if (url.indexOf('suspended.html') > 0 && url.indexOf('uri=') > 0) {
+            url = url.substring(url.indexOf('uri=') + 4, url.length);
+        }
+        return url;
+    }
 
 
 
@@ -501,6 +556,14 @@
         }, callback);
     }
 
+    function performRestoreFromBackup(spacesObject, callback) {
+
+        chrome.runtime.sendMessage({
+            action: 'restoreFromBackup',
+            spaces: spacesObject
+        }, callback);
+    }
+
 
 
 
@@ -544,6 +607,9 @@
         });
         nodes.actionExport.addEventListener("click", function() {
             handleExport();
+        });
+        nodes.actionBackup.addEventListener("click", function() {
+            handleBackup();
         });
         nodes.actionDelete.addEventListener("click", function() {
             handleDelete();
@@ -697,6 +763,7 @@
         nodes.actionOpen = document.getElementById('actionOpen');
         nodes.actionEdit = document.getElementById('actionEdit');
         nodes.actionExport = document.getElementById('actionExport');
+        nodes.actionBackup = document.getElementById('actionBackup');
         nodes.actionDelete = document.getElementById('actionDelete');
         nodes.actionImport = document.getElementById('actionImport');
         nodes.banner = document.getElementById('banner');

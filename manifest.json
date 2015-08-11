@@ -1,10 +1,11 @@
 {
   "name": "Spaces",
   "description": "Intuitive tab management",
-  "version": "0.22",
+  "version": "0.23",
   "permissions": [
     "tabs",
     "storage",
+    "history",
     "unlimitedStorage",
     "chrome://favicon/*",
     "contextMenus"
