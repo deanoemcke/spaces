@@ -4,10 +4,12 @@
 
     'use strict';
 
-    var globalCurrentSpace;
+    var UNSAVED_SESSION = '(unnamed window)',
+        globalCurrentSpace,
+        currentSpaceName;
 
     function renderSpaceInfo() {
-        document.getElementById('activeSpaceTitle').innerHTML = globalCurrentSpace.name ? globalCurrentSpace.name : '(unnamed window)';
+        document.getElementById('activeSpaceTitle').value = globalCurrentSpace.name ? globalCurrentSpace.name : '(unnamed window)';
     }
 
     function renderHotkeys() {
@@ -16,6 +18,40 @@
             document.querySelector('#moverLink .hotkey').innerHTML = hotkeys.moveCode ? hotkeys.moveCode : 'no hotkey set';
         });
     }
+
+    function handleNameEdit() {
+        var inputEl = document.getElementById('activeSpaceTitle');
+        inputEl.focus();
+        if (inputEl.value === UNSAVED_SESSION) {
+            inputEl.value = '';
+        }
+    }
+
+    function handleNameSave() {
+
+        var inputEl = document.getElementById('activeSpaceTitle'),
+            newName = inputEl.value;
+
+        if (newName === UNSAVED_SESSION || newName === globalCurrentSpace.name) {
+            return;
+        }
+
+        if (globalCurrentSpace.sessionId) {
+            chrome.runtime.sendMessage({
+                action: 'updateSessionName',
+                sessionName: newName,
+                sessionId: globalCurrentSpace.sessionId
+            }, function() {});
+
+        } else {
+            chrome.runtime.sendMessage({
+                action: 'saveNewSession',
+                sessionName: newName,
+                windowId: globalCurrentSpace.windowId
+            }, function() {});
+        }
+    }
+
 
     function addEventListeners() {
 
@@ -48,14 +84,14 @@
             window.close();
         });
         document.getElementById('spaceEdit').addEventListener('click', function (e) {
-            chrome.runtime.sendMessage({
-                    action: 'requestShowSpaces',
-                    windowId: globalCurrentSpace.windowId,
-                    edit: true
-                });
-            window.close();
+            handleNameEdit();
         });
-
+        document.getElementById('activeSpaceTitle').addEventListener('focus', function (e) {
+            handleNameEdit();
+        });
+        document.getElementById('activeSpaceTitle').addEventListener('blur', function (e) {
+            handleNameSave();
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
