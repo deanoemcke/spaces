@@ -1,4 +1,4 @@
-# <img src="/src/img/icon48.png" align="absmiddle"> Spaces
+# <img src="/img/icon48.png" align="absmiddle"> Spaces
 
 > **NOTE:** \
 > This extension is from [@deanoemcke](https://github.com/deanoemcke); this repo is just a fork. \
