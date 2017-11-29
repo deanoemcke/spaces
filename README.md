@@ -1,9 +1,5 @@
 # <img src="/img/icon48.png" align="absmiddle"> Spaces
 
-> **TODO** &mdash; add more sections
-> - [ ] Build from github
-> - [ ] License (currently unspecified)
-
 ### A Chrome extension for Intuitive tab management
 
 Spaces is a workspace manager for chrome.
@@ -37,3 +33,7 @@ Please note that the webstore version may be behind the latest version here.
 2. In **Google Chrome**, navigate to [chrome://extensions/](chrome://extensions/) and enable <kbd>Developer mode</kbd> in the upper right corner.
 3. Click on the <kbd>LOAD UNPACKED</kbd> button.
 4. Browse to the _root directory_ of the unarchived download, and click <kbd>OPEN</kbd>.
+
+> **TODO** &mdash; add more sections
+> - [ ] Build from github
+> - [ ] License (currently unspecified)
