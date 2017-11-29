@@ -1,13 +1,8 @@
 # <img src="/img/icon48.png" align="absmiddle"> Spaces
 
-> **NOTE:** \
-> This extension is from [@deanoemcke](https://github.com/deanoemcke); this repo is just a fork. \
-> The description below is borrowed from the Chrome Web Store description.
-
 > **TODO** &mdash; add more sections
 > - [ ] Build from github
 > - [ ] License (currently unspecified)
-> - [ ] Shoutouts
 
 ### A Chrome extension for Intuitive tab management
 
@@ -33,14 +28,12 @@ Isn't this essentially just bookmarks with folders? Yeah, pretty much - but who 
 
 Spaces is also [available via the official Chrome Web Store](https://chrome.google.com/webstore/detail/spaces/cenkmofngpohdnkbjdpilgpmbiiljjim).
 
-Please note that the webstore version may be significantly behind the latest version here.
+Please note that the webstore version may be behind the latest version here.
 
 ### Install as an extension from source
 
-1. Download the **[latest available version](https://github.com/jmason888/spaces/archive/master.zip)** 
+1. Download the **[latest available version](https://github.com/deanoemcke/spaces/archive/v1.0.1.zip)** 
 2. Unarchive to your preferred location (e.g., `Downloads`).
 2. In **Google Chrome**, navigate to [chrome://extensions/](chrome://extensions/) and enable <kbd>Developer mode</kbd> in the upper right corner.
 3. Click on the <kbd>LOAD UNPACKED</kbd> button.
 4. Browse to the _root directory_ of the unarchived download, and click <kbd>OPEN</kbd>.
-
-> **TODO** &mdash; Update the download URL in step 1
