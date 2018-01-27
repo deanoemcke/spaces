@@ -427,7 +427,13 @@
             content += JSON.stringify(leanSpaces);
 
             encodedUri = encodeURI(content);
-            filename = "spaces-backup.json";
+            var today = new Date();
+            var dateAry = [ today.getFullYear() , today.getMonth()+1, today.getDate(),
+                            today.getHours(), today.getMinutes(), today.getSeconds() ]
+                          .map( function(n) { return n<10 ? "0"+n : n; } );
+            filename = "spaces-backup." + dateAry.slice(0,3).join("-") + "."
+                       + dateAry.slice(3,6).join("-") + ".json";
+
             link = document.createElement("a");
             link.setAttribute("href", encodedUri);
             link.setAttribute("download", filename);
