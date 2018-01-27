@@ -1,5 +1,8 @@
 # <img src="/img/icon48.png" align="absmiddle"> Spaces
 
+> **NOTE:** \
+> This extension is from [@deanoemcke](https://github.com/deanoemcke); this repo is just a fork. \
+
 ### A Chrome extension for Intuitive tab management
 
 Spaces is a workspace manager for chrome.
@@ -28,7 +31,7 @@ Please note that the webstore version may be behind the latest version here.
 
 ### Install as an extension from source
 
-1. Download the **[latest available version](https://github.com/deanoemcke/spaces/archive/v1.0.1.zip)** 
+1. Download the **[latest available version](https://github.com/jmason888/spaces/archive/master.zip)** 
 2. Unarchive to your preferred location (e.g., `Downloads`).
 2. In **Google Chrome**, navigate to [chrome://extensions/](chrome://extensions/) and enable <kbd>Developer mode</kbd> in the upper right corner.
 3. Click on the <kbd>LOAD UNPACKED</kbd> button.
