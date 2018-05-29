@@ -1,0 +1,6 @@
+**/Thumbs.db
+**/*.pem
+/build/*
+/.idea/*
+/.debris/*
+.DS_Store
