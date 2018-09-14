@@ -1,7 +1,45 @@
 {
-  "name": "Spaces",
-  "description": "Intuitive tab management",
-  "version": "0.23",
+  "manifest_version": 2,
+  "name": "SpacesBeta",
+  "short_name": "Spaces",
+  "version": "0.24.3",
+  "version_name": "0.24 β3",
+  "description": "Intuitive tab management, save memory by setting aside windows full of tabs, and get them back later.",
+  "update_url": "https://www.segv11.net/ext/SpacesBeta.xml",
+  "browser_action": {
+    "default_title": "SpacesBeta",
+    "default_icon": "img/icon128.png",
+    "default_popup": "popup.html"
+  },
+  "options_page": "spaces.html",
+  "background": {
+    "scripts": [
+      "js/db.js",
+      "js/dbService.js",
+      "js/spacesService.js",
+      "js/background.js"
+    ],
+    "persistent": true
+  },
+  "commands": {
+    "spaces-move": {
+      "description": "Move active tab",
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      }
+    },
+    "spaces-switch": {
+      "description": "Switch between spaces",
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      }
+    }
+  },
+  "homepage_url": "https://www.segv11.net/ext/SpacesBeta.html",
+  "incognito": "split",
+  "minimum_chrome_version": "35",
   "permissions": [
     "tabs",
     "storage",
@@ -10,34 +48,10 @@
     "chrome://favicon/*",
     "contextMenus"
   ],
-  "background": {
-    "scripts": ["js/db.js", "js/dbService.js", "js/spacesService.js", "js/background.js"],
-    "persistent": true
-  },
-  "browser_action": {
-    "default_title": "Spaces",
-    "default_icon": "img/icon128.png",
-    "default_popup": "popup.html"
-  },
-  "options_page": "spaces.html",
   "icons": {
     "16": "img/icon16.png",
     "48": "img/icon48.png",
     "128": "img/icon128.png"
   },
-  "web_accessible_resources": [],
-  "incognito": "split",
-  "manifest_version": 2,
-  "minimum_chrome_version": "35",
-
-  "commands": {
-    "spaces-move": {
-      "description": "Move active tab",
-      "suggested_key": { "default": "Ctrl+Shift+M", "mac": "Command+Shift+M" }
-    },
-    "spaces-switch": {
-      "description": "Switch between spaces",
-      "suggested_key": { "default": "Ctrl+Shift+S", "mac": "Command+Shift+S" }
-    }
-  }
+  "web_accessible_resources": []
 }

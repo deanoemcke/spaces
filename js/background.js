@@ -74,7 +74,7 @@ var spaces = (function () {
     //add listeners for tab and window focus changes
     //when a tab or window is changed, close the move tab popup if it is open
     chrome.windows.onFocusChanged.addListener(function(windowId) {
-        // Prevent a click in the popup on Ubunto or ChroneOS from closing the
+        // Prevent a click in the popup on Ubuntu or ChromeOS from closing the
         // popup prematurely.
         if (windowId == chrome.windows.WINDOW_ID_NONE || windowId == spacesPopupWindowId) {
             return;
