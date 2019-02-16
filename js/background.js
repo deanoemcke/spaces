@@ -508,7 +508,7 @@ var spaces = (function () {
 
             name = session ? session.name : '';
 
-            url = chrome.extension.getURL('tab.html#' + 'windowId=' + activeTab.windowId + '&sessionName=' + name);
+            url = chrome.extension.getURL('tab.html#action=move&windowId=' + activeTab.windowId + '&sessionName=' + name);
             if (tabUrl) {
                 url += '&url=' + encodeURIComponent(tabUrl);
             } else {
@@ -520,11 +520,11 @@ var spaces = (function () {
     }
     function showSpacesSwitchWindow() {
 
-        var url = chrome.extension.getURL('switcher.html');
+        var url = chrome.extension.getURL('popup.html#action=switch');
         createOrShowSpacesPopupWindow(url);
     }
 
-    function createOrShowSpacesPopupWindow(url) {
+    function createOrShowSpacesPopupWindow(url, callback) {
 
         //if spaces  window already exists
         if (spacesPopupWindowId) {
@@ -579,7 +579,7 @@ console.trace();
             chrome.windows.get(spacesPopupWindowId, {populate: true}, function(spacesWindow) {
 
                 //remove popup from history
-                if (spacesWindow.tabs[0].url) {
+                if (spacesWindow.tabs.length > 0 && spacesWindow.tabs[0].url) {
                     chrome.history.deleteUrl({url: spacesWindow.tabs[0].url});
                 }
 

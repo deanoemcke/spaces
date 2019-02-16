@@ -85,6 +85,13 @@ body {
 .space.selected {
     background-color: #91E0C5;
 }
+.spaceTitle {
+    white-space: nowrap;
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 90%;
+}
 .spaceDetail {
     overflow: hidden;
     font-size: 14px;

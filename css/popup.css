@@ -76,3 +76,130 @@ a {
 	opacity: 0.8;
 }
 
+
+/*
+ *  PANEL
+ */
+
+body {
+
+}
+.mainContent {
+    height: 100%;
+}
+.contentBody {
+    padding: 10px;
+    font-size: 14px;
+    width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+}
+#spacesList.scroll {
+    /*overflow-y: auto;
+    height: 350px;*/
+}
+
+.favicon {
+    width: 16px;
+    height: 16px;
+}
+
+#spaceInfo {
+    margin-top: 5px;
+    padding-bottom: 5px;
+    border-bottom: solid 1px #91E0C5;
+    font-weight: bold;
+    color: #555;
+}
+#spaceEdit {
+    cursor: pointer;
+    font-size: 16px;
+    float: right;
+    padding: 8px;
+    margin-top: -7px;
+}
+#spaceEdit:hover {
+    color: #000;
+    background-color: #91E0C5;
+}
+#tabInfo {
+    margin-top: 20px;
+    margin-bottom: 8px;
+}
+#activeTabTitle {
+    display: inline-block;
+    width:  90%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+#activeTabFavicon {
+    margin: 0 6px 2px 0;
+}
+#spaceSelectForm {
+    margin-bottom: 10px;
+    width: 273px;
+}
+#spaceSelectForm input {
+    width: 98%;
+    height: 25px;
+    font-size: 14px;
+    padding-left: 8px;
+}
+
+#activeSpace {
+    background-color: #D7D7D7;
+}
+#newSpace {
+    display: none;
+}
+.space {
+    padding: 10px;
+    background-color: #F7F7F7;
+    border-bottom   : 1px solid #D7D7D7;
+}
+.space:hover {
+    cursor: pointer;
+    background-color: #eee;
+}
+.space.open {
+    font-weight: 600;
+}
+.space.selected {
+    background-color: #91E0C5;
+}
+.spaceTitle {
+    white-space: nowrap;
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 90%;
+}
+.spaceDetail {
+    overflow: hidden;
+    font-size: 14px;
+    font-style: italic;
+    margin-left: 10px;
+}
+
+#footer {
+    position: absolute;
+    bottom: 14px;
+}
+.button {
+    cursor: pointer;
+    text-align: center;
+    padding: 8px 50px;
+}
+.button.okBtn {
+    background-color: #FFD082;
+}
+.button.okBtn:hover,.button.okBtn.selected {
+    background-color: #FFAF29;
+}
+.button.cancelBtn {
+    background-color: #D7D7D7;
+}
+.button.cancelBtn:hover {
+    background-color: #C3BEBE;
+}

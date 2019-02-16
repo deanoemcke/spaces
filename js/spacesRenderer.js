@@ -1,9 +1,6 @@
-
 'use strict';
 
 var spacesRenderer = {
-
-    UNSAVED_SESSION: '(unnamed window)',
     nodes: {},
     maxSuggestions: 10,
     oneClickMode: false,
@@ -48,18 +45,19 @@ var spacesRenderer = {
         var self = this,
             listContainer = document.createElement('div'),
             listTitle = document.createElement('span'),
-            listDetail = document.createElement('span'),
-            name = space.name || this.UNSAVED_SESSION;
+            listDetail = document.createElement('span');
 
         listContainer.setAttribute('data-sessionId', space.sessionId);
         listContainer.setAttribute('data-windowId', space.windowId);
+        listContainer.setAttribute('data-spaceName', space.name || '');
+        listContainer.setAttribute('data-placeholder', space.name || 'Unnamed space');
 
         listContainer.style.display = 'block';
         listContainer.className = 'space';
         listTitle.className = 'spaceTitle';
         listDetail.className = 'spaceDetail';
 
-        listTitle.innerHTML = name;
+        listTitle.innerHTML = space.name || spacesRenderer.getDefaultSpaceTitle(space);
         listDetail.innerHTML = this.getTabDetailsString(space);
 
         listContainer.appendChild(listTitle);
@@ -138,16 +136,26 @@ var spacesRenderer = {
             open = windowId && windowId !== 'false';
             selected = selectedSpaceEl === spaceEl;
             spaceEl.className = 'space';
-            if (open) spaceEl.className = spaceEl.className + ' open';
-            if (selected) spaceEl.className = spaceEl.className + ' selected';
+            if (open) spaceEl.classList.add('open');
+            if (selected) spaceEl.classList.add('selected');
         }
 
         if (updateText) {
-            spaceTitle = selectedSpaceEl.querySelector('.spaceTitle').innerHTML;
-            spaceTitle = spaceTitle !== this.UNSAVED_SESSION ? spaceTitle : '';
-            this.nodes.moveInput.value = spaceTitle;
+            var spaceName = selectedSpaceEl.getAttribute('data-spaceName');
+            if (spaceName) {
+              this.nodes.moveInput.value = spaceName;
+            } else {
+              this.nodes.moveInput.value = '';
+              this.nodes.moveInput.placeholder = selectedSpaceEl.getAttribute('data-placeholder');
+            }
+
             //this.nodes.moveInput.select();
         }
+    },
+
+    getDefaultSpaceTitle: function(space) {
+        var count = space.tabs.length;
+        return count + ' tab' + (count > 1 ? 's' : '') + ' (' + space.tabs[0].title + '...';
     },
 
     getTabDetailsString: function(space) {

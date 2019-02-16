@@ -529,7 +529,8 @@
             session.history = tabBeingRemoved.concat(session.history);
 
             //trim history for this spae down to last 20 items
-            session.history = session.history.slice(0, 20);
+            // session.history = session.history.slice(0, 20);
+            //for now, lets let this grow
 
             return session;
         },

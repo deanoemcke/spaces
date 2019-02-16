@@ -5,29 +5,83 @@
 	<link href='https://fonts.googleapis.com/css?family=Open+Sans:700,300,600,400' rel='stylesheet' type='text/css'>
 	<link type="text/css" href="css/popup.css" rel="stylesheet">
 	<script type="text/javascript" src="js/popup.js"></script>
+	<script type="text/javascript" src="js/spacesRenderer.js"></script>
 
 </head>
 <body>
+
+	<script type="text/html" id="moveTemplate">
+		<div class="mainContent">
+
+			<div class="contentBody">
+				<div id="spaceInfo">
+					<span>Active space: </span><span id="activeSpaceTitle"></span>
+					<span id="spaceEdit" class="fa fa-pencil"></span>
+				</div>
+				<div id="tabInfo">
+					<img id="activeTabFavicon" class="favicon"></img><span id="activeTabTitle"></span>
+				</div>
+
+				<!-- <span>Move tab to:</span> -->
+				<form id="spaceSelectForm">
+					<input id="sessionsInput" list="sessionsList" type="text" autocomplete="off" placeholder="Move tab to.." />
+				</form>
+				<div id="spacesList">
+					<div id="savedSpaces"></div>
+					<div id="newSpace" class="space new">
+						<span>Create new space: </span><span class="spaceTitle"></span>
+					</div>
+				</div>
+				<div id="footer">
+					<span id="moveBtn" class="button okBtn">Move</span>
+					<span id="cancelBtn" class="button cancelBtn">Cancel</span>
+				</div>
+
+			</div>
+
+		</div>
+	</script>
+	<script type="text/html" id="switcherTemplate">
+		<!--<link type="text/css" href="css/style.css" rel="stylesheet">-->
+		<!--<link type="text/css" href="css/panel.css" rel="stylesheet">-->
+		<div class="mainContent">
+
+			<div class="contentBody">
+
+				<form id="spaceSelectForm">
+					<input id="sessionsInput" list="sessionsList" type="text" autocomplete="off" placeholder="Type a space name" />
+				</form>
+				<div id="spacesList">
+					<div id="savedSpaces"></div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+
 	<div id="header">
 		<span>Active space: </span><input type="text" id="activeSpaceTitle"></input>
-        <span id="spaceEdit" class="fa fa-pencil"></span>
+		<span id="spaceEdit" class="fa fa-pencil"></span>
 	</div>
 
-	<div class="group optsAll">
-		<div class="menuOption" href="#" id="allSpacesLink">
-			<i class="fa fa-th-large"></i>
-			<span class="optionText">Manage spaces</span>
-			<span class="hotkey"></span>
-		</div>
-		<div class="menuOption" href="#" id="switcherLink">
-			<i class="fa fa-exchange"></i>
-			<span class="optionText">Quick switch spaces</span>
-			<span class="hotkey"></span>
-		</div>
-		<div class="menuOption" href="#" id="moverLink">
-			<i class="fa fa-arrow-circle-right"></i>
-			<span class="optionText">Move active tab</span>
-			<span class="hotkey"></span>
+	<div id="popupContainer">
+
+		<div class="group optsAll">
+			<div class="menuOption" href="#" id="allSpacesLink">
+				<i class="fa fa-th-large"></i>
+				<span class="optionText">Manage spaces</span>
+				<span class="hotkey"></span>
+			</div>
+			<div class="menuOption" href="#" id="switcherLink">
+				<i class="fa fa-exchange"></i>
+				<span class="optionText">Quick switch spaces</span>
+				<span class="hotkey"></span>
+			</div>
+			<div class="menuOption" href="#" id="moverLink">
+				<i class="fa fa-arrow-circle-right"></i>
+				<span class="optionText">Move active tab</span>
+				<span class="hotkey"></span>
+			</div>
 		</div>
 	</div>
 </body>

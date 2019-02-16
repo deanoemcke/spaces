@@ -399,9 +399,8 @@
 
     function handleBackup() {
 
-        var leanSpaces, leanTabs, content, filename, encodedUri, link, url;
+        var leanSpaces, leanTabs, filename, blob, blobUrl, link;
 
-        content = "data:application/json;charset=utf-8,";
         leanSpaces = [];
 
         fetchAllSpaces(function (spaces) {
@@ -424,12 +423,11 @@
                 });
             });
 
-            content += JSON.stringify(leanSpaces);
-
-            encodedUri = encodeURI(content);
+            blob = new Blob([JSON.stringify(leanSpaces)], {type : 'application/json'});
+            blobUrl = URL.createObjectURL(blob);
             filename = "spaces-backup.json";
-            link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
+            link = document.createElement('a');
+            link.setAttribute('href', blobUrl);
             link.setAttribute("download", filename);
             link.click();
         });
@@ -437,11 +435,11 @@
 
     function handleExport() {
 
-        var sessionId, windowId, csvContent, dataString, filename, encodedUri, link, url;
+        var sessionId, windowId, csvContent, dataString, url, filename, blob, blobUrl, link;
 
         sessionId = globalSelectedSpace.sessionId;
         windowId = globalSelectedSpace.windowId;
-        csvContent = "data:text/csv;charset=utf-8,";
+        csvContent = '';
         dataString = '';
 
         fetchSpaceDetail(sessionId, windowId, function(space) {
@@ -452,11 +450,13 @@
             });
             csvContent += dataString;
 
-            encodedUri = encodeURI(csvContent);
+
+            blob = new Blob([csvContent], {type : 'text/plain'});
+            blobUrl = URL.createObjectURL(blob);
             filename = (space.name || 'untitled') + ".txt";
-            link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", filename);
+            link = document.createElement('a');
+            link.setAttribute('href', blobUrl);
+            link.setAttribute('download', filename);
             link.click();
         });
     }
