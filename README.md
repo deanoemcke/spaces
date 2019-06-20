@@ -36,4 +36,4 @@ Please note that the webstore version may be behind the latest version here.
 
 > **TODO** &mdash; add more sections
 > - [ ] Build from github
-> - [ ] License (currently unspecified)
+> - [x] License (currently unspecified)
