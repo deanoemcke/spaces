@@ -12,8 +12,8 @@ body {
     margin-right: auto;
 }
 #spacesList.scroll {
-    /*overflow-y: auto;
-    height: 350px;*/
+    overflow: scroll;
+    height: calc(100vh - 40px);
 }
 
 .favicon {

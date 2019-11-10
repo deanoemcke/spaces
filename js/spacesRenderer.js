@@ -5,7 +5,7 @@ var spacesRenderer = {
 
     UNSAVED_SESSION: '(unnamed window)',
     nodes: {},
-    maxSuggestions: 5,
+    maxSuggestions: 10,
     oneClickMode: false,
 
     initialise: function(maxSuggestions, oneClickMode) {
@@ -176,11 +176,10 @@ var spacesRenderer = {
         savedSpaceEls = document.querySelectorAll('#savedSpaces .space');
         Array.prototype.forEach.call(savedSpaceEls, function (spaceEl) {
             curSpaceName = spaceEl.getElementsByClassName('spaceTitle')[0].innerHTML;
-            match = curSpaceName.toLowerCase().indexOf(query.toLowerCase()) === 0;
+            match = curSpaceName.toLowerCase().indexOf(query.toLowerCase()) !== -1;
             exactMatch = exactMatch || query.toLowerCase() === curSpaceName.toLowerCase();
-            if (match && count < self.maxSuggestions) {
+            if (match) {
                 spaceEl.style.display = 'block';
-                count++;
             } else {
                 spaceEl.style.display = 'none';
             }
