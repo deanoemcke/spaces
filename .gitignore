@@ -4,3 +4,4 @@
 /.idea/*
 /.debris/*
 .DS_Store
+node_modules

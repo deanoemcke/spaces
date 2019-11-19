@@ -1,18 +1,15 @@
 /*global chrome, dbService, render, createTabHtml */
 
-(function () {
-
+(function() {
     'use strict';
     var UNSAVED_SESSION = '<em>Unnamed window</em>',
         nodes = {},
         globalSelectedSpace,
         bannerState;
 
-
     //METHODS FOR RENDERING SIDENAV (spaces list)
 
     function renderSpacesList(spaces) {
-
         var spaceEl;
 
         nodes.openSpaces.innerHTML = '';
@@ -29,7 +26,6 @@
     }
 
     function renderSpaceListEl(space) {
-
         var listEl, iconEl, linkEl, hash;
 
         listEl = document.createElement('li');
@@ -49,9 +45,13 @@
             linkEl.innerHTML = UNSAVED_SESSION;
         }
 
-        if (globalSelectedSpace &&
-                ((space.windowId && globalSelectedSpace.windowId === space.windowId) ||
-                (space.sessionId && globalSelectedSpace.sessionId === space.sessionId))) {
+        if (
+            globalSelectedSpace &&
+            ((space.windowId &&
+                globalSelectedSpace.windowId === space.windowId) ||
+                (space.sessionId &&
+                    globalSelectedSpace.sessionId === space.sessionId))
+        ) {
             linkEl.className = 'selected';
         }
 
@@ -73,12 +73,9 @@
         return listEl;
     }
 
-
-
     //METHODS FOR RENDERING MAIN CONTENT (space detail)
 
     function renderSpaceDetail(space, editMode) {
-
         updateNameForm(space);
         toggleNameEditMode(editMode);
         updateButtons(space);
@@ -86,11 +83,9 @@
     }
 
     function updateNameForm(space) {
-
         if (space && space.name) {
             nodes.nameFormInput.value = space.name;
             nodes.nameFormDisplay.innerHTML = space.name;
-
         } else {
             nodes.nameFormInput.value = '';
             if (space) {
@@ -102,7 +97,6 @@
     }
 
     function toggleNameEditMode(visible) {
-
         if (visible) {
             nodes.nameFormDisplay.style.display = 'none';
             nodes.nameFormInput.style.display = 'inline';
@@ -114,27 +108,28 @@
     }
 
     function updateButtons(space) {
-
         var sessionId, windowId;
 
         sessionId = space && space.sessionId ? space.sessionId : false;
         windowId = space && space.windowId ? space.windowId : false;
 
         nodes.actionSwitch.style.display = windowId ? 'inline-block' : 'none';
-        nodes.actionOpen.style.display = space && !windowId ? 'inline-block' : 'none';
-        nodes.actionEdit.style.display = sessionId || windowId ? 'inline-block' : 'none';
-        nodes.actionExport.style.display = sessionId || windowId ? 'inline-block' : 'none';
-        nodes.actionDelete.style.display = !windowId && sessionId ? 'inline-block' : 'none';
+        nodes.actionOpen.style.display =
+            space && !windowId ? 'inline-block' : 'none';
+        nodes.actionEdit.style.display =
+            sessionId || windowId ? 'inline-block' : 'none';
+        nodes.actionExport.style.display =
+            sessionId || windowId ? 'inline-block' : 'none';
+        nodes.actionDelete.style.display =
+            !windowId && sessionId ? 'inline-block' : 'none';
     }
 
     function renderTabs(space) {
-
         nodes.activeTabs.innerHTML = '';
         nodes.historicalTabs.innerHTML = '';
 
         if (!space) {
             nodes.spaceDetailContainer.style.display = 'none';
-
         } else {
             nodes.spaceDetailContainer.style.display = 'block';
 
@@ -143,7 +138,9 @@
             });
             if (space.history) {
                 space.history.forEach(function(tab) {
-                    nodes.historicalTabs.appendChild(renderTabListEl(tab, space));
+                    nodes.historicalTabs.appendChild(
+                        renderTabListEl(tab, space)
+                    );
                 });
             } else {
                 //TODO: hide historical tabs section
@@ -152,7 +149,6 @@
     }
 
     function renderTabListEl(tab, space) {
-
         var listEl, linkEl, faviconEl, faviconSrc;
 
         listEl = document.createElement('li');
@@ -172,7 +168,7 @@
         linkEl.setAttribute('target', '_blank');
 
         //add event listener for each tab link
-        linkEl.addEventListener("click", function(e) {
+        linkEl.addEventListener('click', function(e) {
             e.preventDefault();
             handleLoadTab(space.sessionId, space.windowId, tab.url);
         });
@@ -187,10 +183,9 @@
     }
 
     function initialiseBanner(spaces) {
-
         var savedSpacesExist = false;
 
-        savedSpacesExist = spaces.some(function (space) {
+        savedSpacesExist = spaces.some(function(space) {
             if (space.name) return true;
         });
 
@@ -200,23 +195,18 @@
     }
 
     function setBannerState(state) {
-
         var lessonOneEl = document.getElementById('lessonOne'),
             lessonTwoEl = document.getElementById('lessonTwo');
 
         if (state !== bannerState) {
-
             bannerState = state;
 
             toggleBanner(false, function() {
-
                 if (state > 0) {
-
                     nodes.banner.style.display = 'block';
                     if (state === 1) {
                         lessonOneEl.style.display = 'block';
                         lessonTwoEl.style.display = 'none';
-
                     } else if (state === 2) {
                         lessonOneEl.style.display = 'none';
                         lessonTwoEl.style.display = 'block';
@@ -228,19 +218,17 @@
     }
 
     function toggleBanner(visible, callback) {
-
         setTimeout(function() {
             nodes.banner.className = visible ? ' ' : 'hidden';
-            if (typeof(callback) === 'function') {
+            if (typeof callback === 'function') {
                 setTimeout(function() {
-                        callback();
+                    callback();
                 }, 200);
             }
         }, 100);
     }
 
     function toggleModal(visible) {
-
         nodes.modalBlocker.style.display = visible ? 'block' : 'none';
         nodes.modalContainer.style.display = visible ? 'block' : 'none';
 
@@ -250,29 +238,25 @@
         }
     }
 
-
     //ACTION HANDLERS
 
     function handleLoadSpace(sessionId, windowId) {
-
         if (sessionId) {
-            performLoadSession(sessionId, function (response) {
+            performLoadSession(sessionId, function(response) {
                 reroute(sessionId, false, false);
             });
         } else if (windowId) {
-            performLoadWindow(windowId, function (response) {
+            performLoadWindow(windowId, function(response) {
                 reroute(false, windowId, false);
             });
         }
     }
 
     function handleLoadTab(sessionId, windowId, tabUrl) {
-
         var noop = function() {};
 
         if (sessionId) {
             performLoadTabInSession(sessionId, tabUrl, noop);
-
         } else if (windowId) {
             performLoadTabInWindow(windowId, tabUrl, noop);
         }
@@ -280,7 +264,6 @@
 
     //if background page requests this page update, then assume we need to do a full page update
     function handleAutoUpdateRequest(spaces) {
-
         var matchingSpaces, selectedSpace;
 
         //re-render main spaces list
@@ -288,17 +271,20 @@
 
         //if we are currently viewing a space detail then update this object from returned spaces list
         if (globalSelectedSpace) {
-
             //look for currently selected space by sessionId
             if (globalSelectedSpace.sessionId) {
-                matchingSpaces = spaces.filter(function (curSpace) { return curSpace.sessionId === globalSelectedSpace.sessionId; });
+                matchingSpaces = spaces.filter(function(curSpace) {
+                    return curSpace.sessionId === globalSelectedSpace.sessionId;
+                });
                 if (matchingSpaces.length === 1) {
                     selectedSpace = matchingSpaces[0];
                 }
 
-            //else look for currently selected space by windowId
+                //else look for currently selected space by windowId
             } else if (globalSelectedSpace.windowId) {
-                matchingSpaces = spaces.filter(function (curSpace) { return curSpace.windowId === globalSelectedSpace.windowId; });
+                matchingSpaces = spaces.filter(function(curSpace) {
+                    return curSpace.windowId === globalSelectedSpace.windowId;
+                });
                 if (matchingSpaces.length === 1) {
                     selectedSpace = matchingSpaces[0];
                 }
@@ -308,7 +294,6 @@
             if (selectedSpace) {
                 globalSelectedSpace = selectedSpace;
                 updateSpaceDetail(true);
-
             } else {
                 reroute(false, false, true);
             }
@@ -316,7 +301,6 @@
     }
 
     function handleNameSave() {
-
         var newName, oldName, sessionId, windowId;
 
         newName = nodes.nameFormInput.value;
@@ -336,7 +320,6 @@
             performSessionUpdate(newName, sessionId, function(session) {
                 if (session) reroute(session.id, false, true);
             });
-
         } else if (windowId) {
             performNewSessionSave(newName, windowId, function(session) {
                 if (session) reroute(session.id, false, true);
@@ -350,7 +333,6 @@
     }
 
     function handleDelete() {
-
         var sessionId = globalSelectedSpace.sessionId;
 
         if (sessionId) {
@@ -363,7 +345,6 @@
 
     //import accepts either a newline separated list of urls or a json backup object
     function handleImport() {
-
         var rawInput, urlList, spacesObject;
 
         rawInput = nodes.modalInput.value;
@@ -374,17 +355,15 @@
             performRestoreFromBackup(spacesObject, function() {
                 updateSpacesList();
             });
-        }
-
-        //otherwise treat as a list of newline separated urls
-        catch (e) {
-
+        } catch (e) {
+            //otherwise treat as a list of newline separated urls
             if (rawInput.trim().length > 0) {
                 urlList = rawInput.split('\n');
 
                 //filter out bad urls
                 urlList = urlList.filter(function(url) {
-                    if (url.trim().length > 0 && url.indexOf('://') > 0) return true;
+                    if (url.trim().length > 0 && url.indexOf('://') > 0)
+                        return true;
                     return false;
                 });
 
@@ -398,44 +377,50 @@
     }
 
     function handleBackup() {
-
         var leanSpaces, leanTabs, filename, blob, blobUrl, link;
 
         leanSpaces = [];
 
-        fetchAllSpaces(function (spaces) {
-
+        fetchAllSpaces(function(spaces) {
             //strip out unnessary content from each space
             spaces.forEach(function(space) {
-
                 leanTabs = [];
-                space.tabs.forEach(function (curTab) {
+                space.tabs.forEach(function(curTab) {
                     leanTabs.push({
                         title: curTab.title,
                         url: normaliseTabUrl(curTab.url),
-                        favIconUrl: curTab.favIconUrl
+                        favIconUrl: curTab.favIconUrl,
                     });
                 });
 
                 leanSpaces.push({
                     name: space.name,
-                    tabs: leanTabs
+                    tabs: leanTabs,
                 });
             });
 
-            blob = new Blob([JSON.stringify(leanSpaces)], {type : 'application/json'});
+            blob = new Blob([JSON.stringify(leanSpaces)], {
+                type: 'application/json',
+            });
             blobUrl = URL.createObjectURL(blob);
-            filename = "spaces-backup.json";
+            filename = 'spaces-backup.json';
             link = document.createElement('a');
             link.setAttribute('href', blobUrl);
-            link.setAttribute("download", filename);
+            link.setAttribute('download', filename);
             link.click();
         });
     }
 
     function handleExport() {
-
-        var sessionId, windowId, csvContent, dataString, url, filename, blob, blobUrl, link;
+        var sessionId,
+            windowId,
+            csvContent,
+            dataString,
+            url,
+            filename,
+            blob,
+            blobUrl,
+            link;
 
         sessionId = globalSelectedSpace.sessionId;
         windowId = globalSelectedSpace.windowId;
@@ -443,17 +428,15 @@
         dataString = '';
 
         fetchSpaceDetail(sessionId, windowId, function(space) {
-
-            space.tabs.forEach(function (curTab, tabIndex) {
+            space.tabs.forEach(function(curTab, tabIndex) {
                 url = normaliseTabUrl(curTab.url);
                 dataString += url + '\n';
             });
             csvContent += dataString;
 
-
-            blob = new Blob([csvContent], {type : 'text/plain'});
+            blob = new Blob([csvContent], { type: 'text/plain' });
             blobUrl = URL.createObjectURL(blob);
-            filename = (space.name || 'untitled') + ".txt";
+            filename = (space.name || 'untitled') + '.txt';
             link = document.createElement('a');
             link.setAttribute('href', blobUrl);
             link.setAttribute('download', filename);
@@ -468,109 +451,125 @@
         return url;
     }
 
-
-
     //SERVICES
 
     function fetchAllSpaces(callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'requestAllSpaces'
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'requestAllSpaces',
+            },
+            callback
+        );
     }
 
     function fetchSpaceDetail(sessionId, windowId, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'requestSpaceDetail',
-            sessionId: sessionId ? sessionId : false,
-            windowId: windowId ? windowId : false
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'requestSpaceDetail',
+                sessionId: sessionId ? sessionId : false,
+                windowId: windowId ? windowId : false,
+            },
+            callback
+        );
     }
 
     function performLoadSession(sessionId, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'loadSession',
-            sessionId: sessionId
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'loadSession',
+                sessionId: sessionId,
+            },
+            callback
+        );
     }
 
     function performLoadWindow(windowId, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'loadWindow',
-            windowId: windowId
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'loadWindow',
+                windowId: windowId,
+            },
+            callback
+        );
     }
 
     function performLoadTabInSession(sessionId, tabUrl, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'loadTabInSession',
-            sessionId: sessionId,
-            tabUrl: tabUrl
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'loadTabInSession',
+                sessionId: sessionId,
+                tabUrl: tabUrl,
+            },
+            callback
+        );
     }
 
     function performLoadTabInWindow(windowId, tabUrl, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'loadTabInWindow',
-            windowId: windowId,
-            tabUrl: tabUrl
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'loadTabInWindow',
+                windowId: windowId,
+                tabUrl: tabUrl,
+            },
+            callback
+        );
     }
 
     function performDelete(sessionId, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'deleteSession',
-            sessionId: sessionId
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'deleteSession',
+                sessionId: sessionId,
+            },
+            callback
+        );
     }
 
     function performSessionUpdate(newName, sessionId, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'updateSessionName',
-            sessionName: newName,
-            sessionId: sessionId
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'updateSessionName',
+                sessionName: newName,
+                sessionId: sessionId,
+            },
+            callback
+        );
     }
 
     function performNewSessionSave(newName, windowId, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'saveNewSession',
-            sessionName: newName,
-            windowId: windowId
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'saveNewSession',
+                sessionName: newName,
+                windowId: windowId,
+            },
+            callback
+        );
     }
 
     function performSessionImport(urlList, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'importNewSession',
-            urlList: urlList
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'importNewSession',
+                urlList: urlList,
+            },
+            callback
+        );
     }
 
     function performRestoreFromBackup(spacesObject, callback) {
-
-        chrome.runtime.sendMessage({
-            action: 'restoreFromBackup',
-            spaces: spacesObject
-        }, callback);
+        chrome.runtime.sendMessage(
+            {
+                action: 'restoreFromBackup',
+                spaces: spacesObject,
+            },
+            callback
+        );
     }
-
-
-
 
     //EVENT LISTENERS FOR STATIC DOM ELEMENTS
 
     function addEventListeners() {
-
         //register hashchange listener
         window.onhashchange = function() {
             updateSpacesList();
@@ -578,69 +577,70 @@
         };
 
         //register incoming events listener
-        chrome.runtime.onMessage.addListener(function (request, sender, callback) {
-
+        chrome.runtime.onMessage.addListener(function(
+            request,
+            sender,
+            callback
+        ) {
             if (request.action === 'updateSpaces' && request.spaces) {
                 handleAutoUpdateRequest(request.spaces);
             }
         });
 
         //register dom listeners
-        nodes.nameFormDisplay.addEventListener("click", function() {
+        nodes.nameFormDisplay.addEventListener('click', function() {
             toggleNameEditMode(true);
         });
-        nodes.nameFormInput.addEventListener("blur", function() {
+        nodes.nameFormInput.addEventListener('blur', function() {
             handleNameSave();
         });
-        nodes.nameForm.addEventListener("submit", function(e) {
+        nodes.nameForm.addEventListener('submit', function(e) {
             e.preventDefault();
             handleNameSave();
         });
-        nodes.actionSwitch.addEventListener("click", function() {
-            handleLoadSpace(globalSelectedSpace.sessionId, globalSelectedSpace.windowId);
+        nodes.actionSwitch.addEventListener('click', function() {
+            handleLoadSpace(
+                globalSelectedSpace.sessionId,
+                globalSelectedSpace.windowId
+            );
         });
-        nodes.actionOpen.addEventListener("click", function() {
+        nodes.actionOpen.addEventListener('click', function() {
             handleLoadSpace(globalSelectedSpace.sessionId, false);
         });
-        nodes.actionEdit.addEventListener("click", function() {
+        nodes.actionEdit.addEventListener('click', function() {
             toggleNameEditMode(true);
         });
-        nodes.actionExport.addEventListener("click", function() {
+        nodes.actionExport.addEventListener('click', function() {
             handleExport();
         });
-        nodes.actionBackup.addEventListener("click", function() {
+        nodes.actionBackup.addEventListener('click', function() {
             handleBackup();
         });
-        nodes.actionDelete.addEventListener("click", function() {
+        nodes.actionDelete.addEventListener('click', function() {
             handleDelete();
         });
-        nodes.actionImport.addEventListener("click", function(e) {
+        nodes.actionImport.addEventListener('click', function(e) {
             e.preventDefault();
             toggleModal(true);
         });
-        nodes.modalBlocker.addEventListener("click", function() {
+        nodes.modalBlocker.addEventListener('click', function() {
             toggleModal(false);
         });
-        nodes.modalButton.addEventListener("click", function() {
+        nodes.modalButton.addEventListener('click', function() {
             handleImport();
             toggleModal(false);
         });
     }
 
-
-
-
     //ROUTING
 
     //update the hash with new ids (can trigger page re-render)
     function reroute(sessionId, windowId, forceRerender) {
-
         var hash;
 
         hash = '#';
         if (sessionId) {
             hash += 'sessionId=' + sessionId;
-
         } else if (windowId) {
             hash += 'windowId=' + sessionId;
         }
@@ -652,22 +652,20 @@
                 updateSpaceDetail();
             }
 
-        //otherwise set new hash and let the change listener call routeHash
+            //otherwise set new hash and let the change listener call routeHash
         } else {
             window.location.hash = hash;
         }
     }
 
     function getVariableFromHash(key) {
-
         var hash, pairs, curKey, curVal, match;
 
         if (location.hash.length > 0) {
-
             hash = location.hash.substr(1, location.hash.length);
             pairs = hash.split('&');
 
-            match = pairs.some(function (curPair) {
+            match = pairs.some(function(curPair) {
                 curKey = curPair.split('=')[0];
                 curVal = curPair.split('=')[1];
                 if (curKey === key) return true;
@@ -681,25 +679,22 @@
     }
 
     function updateSpacesList(spaces) {
-
         //if spaces passed in then re-render immediately
         if (spaces) {
             renderSpacesList(spaces);
 
-        //otherwise do a fetch of spaces first
+            //otherwise do a fetch of spaces first
         } else {
-            fetchAllSpaces(function (newSpaces) {
+            fetchAllSpaces(function(newSpaces) {
                 renderSpacesList(newSpaces);
 
                 //determine if welcome banner should show
                 initialiseBanner(newSpaces);
-
             });
         }
     }
 
     function updateSpaceDetail(useCachedSpace) {
-
         var sessionId, windowId, editMode;
 
         sessionId = getVariableFromHash('sessionId');
@@ -711,11 +706,9 @@
             addDuplicateMetadata(globalSelectedSpace);
             renderSpaceDetail(globalSelectedSpace, editMode);
 
-        //otherwise refetch space based on hashvars
+            //otherwise refetch space based on hashvars
         } else if (sessionId || windowId) {
-
             fetchSpaceDetail(sessionId, windowId, function(space) {
-
                 addDuplicateMetadata(space);
 
                 //cache current selected space
@@ -723,9 +716,8 @@
                 renderSpaceDetail(space, editMode);
             });
 
-        //otherwise hide space detail view
+            //otherwise hide space detail view
         } else {
-
             //clear cache
             globalSelectedSpace = false;
             renderSpaceDetail(false, false);
@@ -733,20 +725,20 @@
     }
 
     function addDuplicateMetadata(space) {
-
         var dupeCounts = {};
 
-        space.tabs.forEach(function (tab) {
+        space.tabs.forEach(function(tab) {
             tab.title = tab.title || tab.url;
-            dupeCounts[tab.title] = dupeCounts[tab.title] ? dupeCounts[tab.title] + 1 : 1;
+            dupeCounts[tab.title] = dupeCounts[tab.title]
+                ? dupeCounts[tab.title] + 1
+                : 1;
         });
-        space.tabs.forEach(function (tab) {
-            tab.duplicate =  dupeCounts[tab.title] > 1;
+        space.tabs.forEach(function(tab) {
+            tab.duplicate = dupeCounts[tab.title] > 1;
         });
     }
 
-    window.onload = function () {
-
+    window.onload = function() {
         var sessionId, windowId, editMode;
 
         //initialise global handles to key elements (singletons)
@@ -755,7 +747,9 @@
         nodes.closedSpaces = document.getElementById('closedSpaces');
         nodes.activeTabs = document.getElementById('activeTabs');
         nodes.historicalTabs = document.getElementById('historicalTabs');
-        nodes.spaceDetailContainer = document.querySelector('.content .contentBody');
+        nodes.spaceDetailContainer = document.querySelector(
+            '.content .contentBody'
+        );
         nodes.nameForm = document.querySelector('#nameForm');
         nodes.nameFormDisplay = document.querySelector('#nameForm span');
         nodes.nameFormInput = document.querySelector('#nameForm input');
@@ -783,5 +777,4 @@
         //render main content
         updateSpaceDetail();
     };
-
-}());
+})();

@@ -2,14 +2,12 @@
 
 /* spaces
  * Copyright (C) 2015 Dean Oemcke
-*/
+ */
 
-(function (window) {
-
+(function(window) {
     'use strict';
 
     var spacesService = {
-
         tabHistoryUrlMap: {},
         closedWindowIds: {},
         sessions: [],
@@ -23,39 +21,36 @@
 
         //initialise spaces - combine open windows with saved sessions
         initialiseSpaces: function() {
-
             var self = this,
                 sessionId,
                 match;
 
-            console.log("initialising spaces..");
+            console.log('initialising spaces..');
 
             //update version numbers
             this.lastVersion = this.fetchLastVersion();
             this.setLastVersion(chrome.runtime.getManifest().version);
 
-            dbService.fetchAllSessions(function (sessions) {
-
-                if (chrome.runtime.getManifest().version === "0.18" &&
-                        chrome.runtime.getManifest().version !== self.lastVersion) {
-
-                    console.log("resetting all session hashes..");
+            dbService.fetchAllSessions(function(sessions) {
+                if (
+                    chrome.runtime.getManifest().version === '0.18' &&
+                    chrome.runtime.getManifest().version !== self.lastVersion
+                ) {
+                    console.log('resetting all session hashes..');
                     self.resetAllSessionHashes(sessions);
                 }
 
-                chrome.windows.getAll({populate: true}, function (windows) {
-
+                chrome.windows.getAll({ populate: true }, function(windows) {
                     //populate session map from database
                     self.sessions = sessions;
 
                     //clear any previously saved windowIds
-                    self.sessions.forEach(function (session) {
+                    self.sessions.forEach(function(session) {
                         session.windowId = false;
                     });
 
                     //then try to match current open windows with saved sessions
-                    windows.forEach(function (curWindow) {
-
+                    windows.forEach(function(curWindow) {
                         if (!self.filterInternalWindows(curWindow)) {
                             self.checkForSessionMatch(curWindow);
                         }
@@ -65,10 +60,9 @@
         },
 
         resetAllSessionHashes: function(sessions) {
-
             var self = this;
 
-            sessions.forEach(function (session) {
+            sessions.forEach(function(session) {
                 session.sessionHash = self.generateSessionHash(session.tabs);
                 dbService.updateSession(session);
             });
@@ -76,20 +70,17 @@
 
         //record each tab's id and url so we can add history items when tabs are removed
         initialiseTabHistory: function() {
-
             var self = this;
-            chrome.tabs.query({}, function (tabs) {
-                tabs.forEach(function (tab) {
+            chrome.tabs.query({}, function(tabs) {
+                tabs.forEach(function(tab) {
                     self.tabHistoryUrlMap[tab.id] = tab.url;
                 });
             });
         },
 
-
         //NOTE: if ever changing this funciton, then we'll need to update all
         //saved sessionHashes so that they match next time, using: resetAllSessionHashes()
         _cleanUrl: function(url) {
-
             if (!url) {
                 return '';
             }
@@ -123,26 +114,30 @@
         },
 
         generateSessionHash: function(tabs) {
-
             var self = this,
                 text = tabs.reduce(function(prevStr, tab) {
-                        return prevStr + self._cleanUrl(tab.url);
-                    }, '');
+                    return prevStr + self._cleanUrl(tab.url);
+                }, '');
 
-            var hash = 0, i, chr, len;
+            var hash = 0,
+                i,
+                chr,
+                len;
             if (text.length == 0) return hash;
             for (i = 0, len = text.length; i < len; i++) {
-                chr   = text.charCodeAt(i);
-                hash  = ((hash << 5) - hash) + chr;
+                chr = text.charCodeAt(i);
+                hash = (hash << 5) - hash + chr;
                 hash |= 0; // Convert to 32bit integer
             }
             return Math.abs(hash);
         },
 
         filterInternalWindows: function(curWindow) {
-
             //sanity check to make sure window isnt an internal spaces window
-            if (curWindow.tabs.length === 1 && curWindow.tabs[0].url.indexOf(chrome.runtime.id) >= 0) {
+            if (
+                curWindow.tabs.length === 1 &&
+                curWindow.tabs[0].url.indexOf(chrome.runtime.id) >= 0
+            ) {
                 return true;
             }
 
@@ -154,10 +149,7 @@
         },
 
         checkForSessionMatch: function(curWindow) {
-
-            var sessionHash,
-                temporarySession,
-                matchingSession;
+            var sessionHash, temporarySession, matchingSession;
 
             if (!curWindow.tabs || curWindow.tabs.length === 0) {
                 return;
@@ -168,14 +160,24 @@
             matchingSession = this.getSessionBySessionHash(sessionHash, true);
 
             if (matchingSession) {
-                if (this.debug) console.log("matching session found: " + matchingSession.id + ". linking with window: " + curWindow.id);
+                if (this.debug)
+                    console.log(
+                        'matching session found: ' +
+                            matchingSession.id +
+                            '. linking with window: ' +
+                            curWindow.id
+                    );
 
                 this.matchSessionToWindow(matchingSession, curWindow);
             }
 
             //if no match found and this window does not already have a temporary session
             if (!matchingSession && !temporarySession) {
-                if (this.debug) console.log("no matching session found. creating temporary session for window: " + curWindow.id);
+                if (this.debug)
+                    console.log(
+                        'no matching session found. creating temporary session for window: ' +
+                            curWindow.id
+                    );
 
                 //create a new temporary session for this window (with no sessionId or name)
                 this.createTemporaryUnmatchedSession(curWindow);
@@ -183,7 +185,6 @@
         },
 
         matchSessionToWindow: function(session, curWindow) {
-
             //remove any other sessions tied to this windowId (temporary sessions)
             for (var i = this.sessions.length - 1; i >= 0; i--) {
                 if (this.sessions[i].windowId === curWindow.id) {
@@ -200,7 +201,6 @@
         },
 
         createTemporaryUnmatchedSession: function(curWindow) {
-
             if (this.debug) {
                 console.dir(this.sessions);
                 console.dir(curWindow);
@@ -216,13 +216,12 @@
                 name: false,
                 tabs: curWindow.tabs,
                 history: [],
-                lastAccess: new Date()
+                lastAccess: new Date(),
             });
         },
 
-
         //local storage getters/setters
-        fetchLastVersion: function () {
+        fetchLastVersion: function() {
             var version = localStorage.getItem('spacesVersion');
             if (version !== null) {
                 version = JSON.parse(version);
@@ -232,18 +231,19 @@
             }
         },
 
-        setLastVersion: function (newVersion) {
+        setLastVersion: function(newVersion) {
             localStorage.setItem('spacesVersion', JSON.stringify(newVersion));
         },
-
 
         //event listener functions for window and tab events
         //(events are received and screened first in background.js)
         //-----------------------------------------------------------------------------------------
 
         handleTabRemoved: function(tabId, removeInfo, callback) {
-
-            if (this.debug) console.log('handlingTabRemoved event. windowId: ' + removeInfo.windowId);
+            if (this.debug)
+                console.log(
+                    'handlingTabRemoved event. windowId: ' + removeInfo.windowId
+                );
 
             //NOTE: isWindowClosing is true if the window cross was clicked causing the tab to be removed.
             //If the tab cross is clicked and it is the last tab in the window
@@ -255,49 +255,62 @@
                 //should be handled by the window removed listener
                 this.handleWindowRemoved(removeInfo.windowId, true, this.noop);
 
-            //if this is a legitimate single tab removal from a window then update session/window
+                //if this is a legitimate single tab removal from a window then update session/window
             } else {
                 this.historyQueue.push({
                     url: this.tabHistoryUrlMap[tabId],
                     windowId: removeInfo.windowId,
-                    action: 'add'
+                    action: 'add',
                 });
-                this.queueWindowEvent(removeInfo.windowId, this.eventQueueCount, callback);
+                this.queueWindowEvent(
+                    removeInfo.windowId,
+                    this.eventQueueCount,
+                    callback
+                );
 
                 //remove tab from tabHistoryUrlMap
                 delete this.tabHistoryUrlMap[tabId];
             }
         },
         handleTabMoved: function(tabId, moveInfo, callback) {
-
-            if (this.debug) console.log('handlingTabMoved event. windowId: ' + moveInfo.windowId);
-            this.queueWindowEvent(moveInfo.windowId, this.eventQueueCount, callback);
+            if (this.debug)
+                console.log(
+                    'handlingTabMoved event. windowId: ' + moveInfo.windowId
+                );
+            this.queueWindowEvent(
+                moveInfo.windowId,
+                this.eventQueueCount,
+                callback
+            );
         },
         handleTabUpdated: function(tab, changeInfo, callback) {
-
             //NOTE: only queue event when tab has completed loading (title property exists at this point)
             if (tab.status === 'complete') {
-
-                if (this.debug) console.log('handlingTabUpdated event. windowId: ' + tab.windowId);
+                if (this.debug)
+                    console.log(
+                        'handlingTabUpdated event. windowId: ' + tab.windowId
+                    );
 
                 //update tab history in case the tab url has changed
                 this.tabHistoryUrlMap[tab.id] = tab.url;
-                this.queueWindowEvent(tab.windowId, this.eventQueueCount, callback);
+                this.queueWindowEvent(
+                    tab.windowId,
+                    this.eventQueueCount,
+                    callback
+                );
             }
 
             //check for change in tab url. if so, update history
             if (changeInfo.url) {
-
                 //add tab to history queue as an item to be removed (as it is open for this window)
                 this.historyQueue.push({
                     url: changeInfo.url,
                     windowId: tab.windowId,
-                    action: 'remove'
+                    action: 'remove',
                 });
             }
         },
         handleWindowRemoved: function(windowId, markAsClosed, callback) {
-
             var self = this,
                 session;
 
@@ -306,12 +319,18 @@
                 callback();
             }
 
-            if (this.debug) console.log('handlingWindowRemoved event. windowId: ' + windowId);
+            if (this.debug)
+                console.log(
+                    'handlingWindowRemoved event. windowId: ' + windowId
+                );
 
             //add windowId to closedWindowIds. the idea is that once a window is closed it can never be
             //rematched to a new session (hopefully these window ids never get legitimately re-used)
             if (markAsClosed) {
-                if (this.debug) console.log('adding window to closedWindowIds: ' + windowId);
+                if (this.debug)
+                    console.log(
+                        'adding window to closedWindowIds: ' + windowId
+                    );
                 this.closedWindowIds[windowId] = true;
                 clearTimeout(this.sessionUpdateTimers[windowId]);
             }
@@ -322,9 +341,9 @@
                 if (session.id) {
                     session.windowId = false;
 
-                //else if it is temporary session then remove the session from the cache
+                    //else if it is temporary session then remove the session from the cache
                 } else {
-                    this.sessions.some(function (session, index) {
+                    this.sessions.some(function(session, index) {
                         if (session.windowId === windowId) {
                             self.sessions.splice(index, 1);
                             return true;
@@ -336,8 +355,10 @@
             callback();
         },
         handleWindowFocussed: function(windowId) {
-
-            if (this.debug) console.log('handlingWindowFocussed event. windowId: ' + windowId);
+            if (this.debug)
+                console.log(
+                    'handlingWindowFocussed event. windowId: ' + windowId
+                );
 
             if (windowId <= 0) {
                 return;
@@ -348,7 +369,6 @@
                 session.lastAccess = new Date();
             }
         },
-
 
         //1sec timer-based batching system.
         //Set a timeout so that multiple tabs all opened at once (like when restoring a session)
@@ -368,7 +388,6 @@
 
         //careful here as this function gets called A LOT
         handleWindowEvent: function(windowId, eventId, callback) {
-
             var self = this,
                 historyItems,
                 historyItem,
@@ -377,19 +396,35 @@
 
             callback = typeof callback !== 'function' ? this.noop : callback;
 
-            if (this.debug) console.log("------------------------------------------------");
-            if (this.debug) console.log("event: " + eventId + ". attempting session update. windowId: " + windowId);
+            if (this.debug)
+                console.log('------------------------------------------------');
+            if (this.debug)
+                console.log(
+                    'event: ' +
+                        eventId +
+                        '. attempting session update. windowId: ' +
+                        windowId
+                );
 
             //sanity check windowId
             if (!windowId || windowId <= 0) {
-                if (this.debug) console.log("received an event for windowId: " + windowId + " which is obviously wrong");
+                if (this.debug)
+                    console.log(
+                        'received an event for windowId: ' +
+                            windowId +
+                            ' which is obviously wrong'
+                    );
                 return;
             }
 
-            chrome.windows.get(windowId, {populate: true}, function(curWindow) {
-
+            chrome.windows.get(windowId, { populate: true }, function(
+                curWindow
+            ) {
                 if (chrome.runtime.lastError) {
-                    console.log(chrome.runtime.lastError.message + '. perhaps its the development console???');
+                    console.log(
+                        chrome.runtime.lastError.message +
+                            '. perhaps its the development console???'
+                    );
 
                     //if we can't find this window, then better remove references to it from the cached sessions
                     //don't mark as a removed window however, so that the space can be resynced up if the window
@@ -404,7 +439,11 @@
 
                 //don't allow event if it pertains to a closed window id
                 if (self.closedWindowIds[windowId]) {
-                    if (self.debug) console.log('ignoring event as it pertains to a closed windowId: ' + windowId);
+                    if (self.debug)
+                        console.log(
+                            'ignoring event as it pertains to a closed windowId: ' +
+                                windowId
+                        );
                     return;
                 }
 
@@ -412,30 +451,45 @@
                 session = self.getSessionByWindowId(windowId);
 
                 if (session) {
-
-                    if (self.debug) console.log('tab statuses: ' + curWindow.tabs.map(function (curTab) {return curTab.status;}).join('|'));
+                    if (self.debug)
+                        console.log(
+                            'tab statuses: ' +
+                                curWindow.tabs
+                                    .map(function(curTab) {
+                                        return curTab.status;
+                                    })
+                                    .join('|')
+                        );
 
                     //look for tabs recently added/removed from this session and update session history
-                    historyItems = self.historyQueue.filter(function(historyItem) {
-                            return historyItem.windowId === windowId;
-                        });
+                    historyItems = self.historyQueue.filter(function(
+                        historyItem
+                    ) {
+                        return historyItem.windowId === windowId;
+                    });
 
                     for (i = historyItems.length - 1; i >= 0; i--) {
                         historyItem = historyItems[i];
 
                         if (historyItem.action === 'add') {
-                            self.addUrlToSessionHistory(session, historyItem.url);
-
+                            self.addUrlToSessionHistory(
+                                session,
+                                historyItem.url
+                            );
                         } else if (historyItem.action === 'remove') {
-                            self.removeUrlFromSessionHistory(session, historyItem.url);
+                            self.removeUrlFromSessionHistory(
+                                session,
+                                historyItem.url
+                            );
                         }
                         self.historyQueue.splice(i, 1);
                     }
 
                     //override session tabs with tabs from window
                     session.tabs = curWindow.tabs;
-                    session.sessionHash = self.generateSessionHash(session.tabs);
-
+                    session.sessionHash = self.generateSessionHash(
+                        session.tabs
+                    );
 
                     //if it is a saved session then update db
                     if (session.id) {
@@ -447,28 +501,25 @@
                 //if session found without session.id then it must be a temporary session
                 //check for sessionMatch
                 if (!session || !session.id) {
-
-                    if (self.debug) console.log("session check triggered");
+                    if (self.debug) console.log('session check triggered');
                     self.checkForSessionMatch(curWindow);
                 }
                 callback();
             });
         },
 
-
-
         //PUBLIC FUNCTIONS
 
         getSessionBySessionId: function(sessionId) {
             var result = this.sessions.filter(function(session) {
-                    return session.id === sessionId;
-                });
+                return session.id === sessionId;
+            });
             return result.length === 1 ? result[0] : false;
         },
         getSessionByWindowId: function(windowId) {
             var result = this.sessions.filter(function(session) {
-                    return session.windowId === windowId;
-                });
+                return session.windowId === windowId;
+            });
             return result.length === 1 ? result[0] : false;
         },
         getSessionBySessionHash: function(hash, closedOnly) {
@@ -483,8 +534,11 @@
         },
         getSessionByName: function(name) {
             var result = this.sessions.filter(function(session) {
-                    return session.name && session.name.toLowerCase() === name.toLowerCase();
-                });
+                return (
+                    session.name &&
+                    session.name.toLowerCase() === name.toLowerCase()
+                );
+            });
             return result.length >= 1 ? result[0] : false;
         },
         getAllSessions: function() {
@@ -492,7 +546,6 @@
         },
 
         addUrlToSessionHistory: function(session, newUrl) {
-
             if (this.debug) console.log('adding tab to history: ' + newUrl);
 
             var self = this,
@@ -504,12 +557,11 @@
                 return false;
             }
 
-
             //don't add removed tab to history if there is still a tab open with same url
             //note: assumes tab has NOT already been removed from session.tabs
-            tabBeingRemoved = session.tabs.filter(function (curTab) {
-                    return self._cleanUrl(curTab.url) === newUrl;
-                });
+            tabBeingRemoved = session.tabs.filter(function(curTab) {
+                return self._cleanUrl(curTab.url) === newUrl;
+            });
 
             if (tabBeingRemoved.length !== 1) {
                 return false;
@@ -518,7 +570,7 @@
             if (!session.history) session.history = [];
 
             //see if tab already exists in history. if so then remove it (it will be re-added)
-            session.history.some(function (historyTab, index) {
+            session.history.some(function(historyTab, index) {
                 if (self._cleanUrl(historyTab.url) === newUrl) {
                     session.history.splice(index, 1);
                     return true;
@@ -528,15 +580,13 @@
             //add url to session history
             session.history = tabBeingRemoved.concat(session.history);
 
-            //trim history for this spae down to last 20 items
-            // session.history = session.history.slice(0, 20);
-            //for now, lets let this grow
+            //trim history for this spae down to last 50 items
+            session.history = session.history.slice(0, 50);
 
             return session;
         },
 
         removeUrlFromSessionHistory: function(session, newUrl) {
-
             if (this.debug) console.log('removing tab from history: ' + newUrl);
 
             var self = this;
@@ -548,7 +598,7 @@
             }
 
             //see if tab already exists in history. if so then remove it
-            session.history.some(function (historyTab, index) {
+            session.history.some(function(historyTab, index) {
                 if (self._cleanUrl(historyTab.url) === newUrl) {
                     session.history.splice(index, 1);
                     return true;
@@ -556,11 +606,9 @@
             });
         },
 
-
         //Database actions
 
         updateSessionTabs: function(sessionId, tabs, callback) {
-
             var session = this.getSessionBySessionId(sessionId);
 
             callback = typeof callback !== 'function' ? this.noop : callback;
@@ -573,7 +621,6 @@
         },
 
         updateSessionName: function(sessionId, sessionName, callback) {
-
             var session;
 
             callback = typeof callback !== 'function' ? this.noop : callback;
@@ -585,7 +632,6 @@
         },
 
         saveExistingSession: function(sessionId, callback) {
-
             var self = this,
                 session = this.getSessionBySessionId(sessionId),
                 windowId = session.windowId;
@@ -596,7 +642,6 @@
         },
 
         saveNewSession: function(sessionName, tabs, windowId, callback) {
-
             var self = this,
                 sessionHash = this.generateSessionHash(tabs),
                 session;
@@ -612,7 +657,7 @@
             if (!session) {
                 session = {
                     windowId: windowId,
-                    history: []
+                    history: [],
                 };
                 this.sessions.push(session);
             }
@@ -624,8 +669,7 @@
             session.lastAccess = new Date();
 
             //save session to db
-            dbService.createSession(session, function (savedSession) {
-
+            dbService.createSession(session, function(savedSession) {
                 //update sessionId in cache
                 //oddly, this seems to get updated without having to do this assignment
                 //session.id = savedSession.id;
@@ -635,15 +679,13 @@
         },
 
         deleteSession: function(sessionId, callback) {
-
             var self = this;
 
             callback = typeof callback !== 'function' ? this.noop : callback;
 
             dbService.removeSession(sessionId, function() {
-
                 //remove session from cached array
-                self.sessions.some(function (session, index) {
+                self.sessions.some(function(session, index) {
                     if (session.id === sessionId) {
                         self.sessions.splice(index, 1);
                         return true;
@@ -651,9 +693,7 @@
                 });
                 callback();
             });
-        }
-
+        },
     };
     window.spacesService = spacesService;
-
-}(window));
+})(window);
