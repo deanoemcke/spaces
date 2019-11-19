@@ -1,49 +1,131 @@
 /* RESET */
 
-html, body, div, span, applet, object, iframe,
-
-, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
 }
 
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-	display: block;
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
 }
-ol, ul {
-	list-style: none;
+ol,
+ul {
+    list-style: none;
 }
 
 /* END RESET */
 
-html, body {margin:0;padding:0;height:100%;}
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
 
 body {
-	font-family: 'Open Sans', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-weight: 300;
-	font-size: 15px;
+    font-size: 15px;
     padding: 0;
     margin: 0;
 }
 p {
-	margin: 0 0 15px;
+    margin: 0 0 15px;
 }
 input {
     font-family: 'Open Sans', sans-serif;
@@ -59,7 +141,7 @@ a {
 a:hover {
     text-decoration: underline;
 }
-a.active{
+a.active {
     color: #444;
     cursor: default;
     font-weight: 600;
@@ -75,11 +157,12 @@ a.active{
 .mainContent h2 {
     padding: 0 0 15px 0;
     margin: 30px 0 15px 0;
-    border-bottom: 1px solid #91E0C5;
+    border-bottom: 1px solid #91e0c5;
     font-size: 16px;
     font-weight: 400;
 }
-.mainContent ol, .mainContent ul {
+.mainContent ol,
+.mainContent ul {
     padding-left: 0px;
 }
 .mainContent a.selected {
@@ -89,7 +172,7 @@ a.active{
 .header {
     height: 68px;
     padding: 0 30px;
-    background-color: #91E0C5;
+    background-color: #91e0c5;
     white-space: nowrap;
 }
 .header h1 {
@@ -118,7 +201,8 @@ a.active{
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.1);
 }
-#actionSwitch, #actionOpen {
+#actionSwitch,
+#actionOpen {
 }
 .contentNav {
     float: left;
@@ -145,7 +229,7 @@ a.active{
 }
 .content {
     margin-left: 360px;
-    border-left: 1px solid #91E0C5;
+    border-left: 1px solid #91e0c5;
     min-height: 100%;
 }
 .content li {
@@ -172,7 +256,7 @@ a.active{
     text-overflow: ellipsis;
 }
 .tabsList .duplicate {
-    color: #E58080;
+    color: #e58080;
 }
 
 #banner {
@@ -182,7 +266,7 @@ a.active{
     width: 100%;
     height: 130px;
     padding-left: 30px;
-    background-color: #FFC564;
+    background-color: #ffc564;
     transition: all 0.5s ease;
 }
 #banner.hidden {
@@ -214,7 +298,8 @@ a.active{
     min-width: 300px;
 }
 
-.blocker,.modal{
+.blocker,
+.modal {
     display: none;
     position: fixed;
 }
@@ -254,9 +339,9 @@ a.active{
     text-align: center;
     padding: 8px 50px;
     margin-top: 20px;
-    background-color: #FFB946;
+    background-color: #ffb946;
 }
 .modal .button:hover {
-    background-color: #FFAF29;
+    background-color: #ffaf29;
     text-decoration: none;
 }
