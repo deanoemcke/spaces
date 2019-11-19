@@ -1,49 +1,55 @@
 {
-  "name": "Spaces",
-  "description": "Intuitive tab management",
-  "version": "0.25",
-  "permissions": [
-    "tabs",
-    "storage",
-    "history",
-    "unlimitedStorage",
-    "chrome://favicon/*",
-    "contextMenus"
-  ],
-  "background": {
-    "scripts": [
-      "js/db.js",
-      "js/dbService.js",
-      "js/spacesService.js",
-      "js/utils.js",
-      "js/background.js"
+    "name": "Spaces",
+    "description": "Intuitive tab management",
+    "version": "0.25",
+    "permissions": [
+        "tabs",
+        "storage",
+        "history",
+        "unlimitedStorage",
+        "chrome://favicon/*",
+        "contextMenus"
     ],
-    "persistent": true
-  },
-  "browser_action": {
-    "default_title": "Spaces",
-    "default_icon": "img/icon128.png",
-    "default_popup": "popup.html"
-  },
-  "options_page": "spaces.html",
-  "icons": {
-    "16": "img/icon16.png",
-    "48": "img/icon48.png",
-    "128": "img/icon128.png"
-  },
-  "web_accessible_resources": [],
-  "incognito": "split",
-  "manifest_version": 2,
-  "minimum_chrome_version": "35",
-
-  "commands": {
-    "spaces-move": {
-      "description": "Move active tab",
-      "suggested_key": { "default": "Ctrl+Shift+M", "mac": "Command+Shift+M" }
+    "background": {
+        "scripts": [
+            "js/db.js",
+            "js/dbService.js",
+            "js/spacesService.js",
+            "js/utils.js",
+            "js/background.js"
+        ],
+        "persistent": true
     },
-    "spaces-switch": {
-      "description": "Switch between spaces",
-      "suggested_key": { "default": "Ctrl+Shift+S", "mac": "Command+Shift+S" }
+    "browser_action": {
+        "default_title": "Spaces",
+        "default_icon": "img/icon128.png",
+        "default_popup": "popup.html"
+    },
+    "options_page": "spaces.html",
+    "icons": {
+        "16": "img/icon16.png",
+        "48": "img/icon48.png",
+        "128": "img/icon128.png"
+    },
+    "web_accessible_resources": [],
+    "incognito": "split",
+    "manifest_version": 2,
+    "minimum_chrome_version": "35",
+
+    "commands": {
+        "spaces-move": {
+            "description": "Move active tab",
+            "suggested_key": {
+                "default": "Ctrl+Shift+M",
+                "mac": "Command+Shift+M"
+            }
+        },
+        "spaces-switch": {
+            "description": "Switch between spaces",
+            "suggested_key": {
+                "default": "Ctrl+Shift+S",
+                "mac": "Command+Shift+S"
+            }
+        }
     }
-  }
 }
