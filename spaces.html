@@ -1,82 +1,88 @@
 <!doctype html>
 <html>
+
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:700,300,600,400' rel='stylesheet' type='text/css'>
     <title id='gsTitle'>Spaces</title>
-    <link type="text/css" href="css/style.css" rel="stylesheet"></link>
+    <link type="text/css" href="css/style.css" rel="stylesheet">
+    </link>
     <script type="text/javascript" src="js/spaces.js"></script>
 
 </head>
+
 <body>
 
-<div class="mainContent">
+    <div class="mainContent">
 
-    <div class="contentNav">
+        <div class="contentNav">
 
-        <div class="header">
-            <a id="spacesHome" href="#">
-                <img src="img/icon48.png" />
-                <h1>Spaces</h1>
-            </a>
-        </div>
+            <div class="header">
+                <a id="spacesHome" href="#">
+                    <img src="img/icon48.png" />
+                    <h1>Spaces</h1>
+                </a>
+            </div>
 
-        <div class="contentBody">
-            <h2>Open spaces:</h2>
-            <ul id="openSpaces"></ul>
-            <h2>Closed spaces:</h2>
-            <ul id="closedSpaces"></ul>
-            <ul>
-                <li><a id="actionImport" href="#">Import spaces or urls...</a></li>
-                <li><a id="actionBackup" href="#">Backup all spaces...</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="content">
-
-        <div class="header">
-            <form id="nameForm">
-                <span id="nameDisplay"></span>
-                <input type="text" placeholder="Name this space" />
-            </form>
-            <span id='actionSwitch' title="Switch to this space" class="button fa fa-arrow-circle-right"></span>
-            <span id='actionOpen' title="Open this space" class="button fa fa-external-link"></span>
-            <div class="buttonNav">
-                <span id='actionEdit' title="Rename space" class="button fa fa-pencil"></span>
-                <span id='actionExport' title="Export space" class="button fa fa-download"></span>
-                <span id='actionDelete' title="Delete space" class="button fa fa-trash"></span>
+            <div class="contentBody">
+                <h2>Open spaces:</h2>
+                <ul id="openSpaces"></ul>
+                <h2>Closed spaces:</h2>
+                <ul id="closedSpaces"></ul>
+                <ul>
+                    <li><a id="actionImport" href="#">Import spaces or urls...</a></li>
+                    <li><a id="actionBackup" href="#">Backup all spaces...</a></li>
+                </ul>
             </div>
         </div>
 
-        <div class="contentBody">
-            <h2>Active tabs:</h2>
-            <ul id="activeTabs" class="tabsList"></ul>
-            <h2>Recently closed tabs:</h2>
-            <ul id="historicalTabs" class="tabsList"></ul>
-        </div>
-    </div>
+        <div class="content">
 
-    <div id="banner" class="hidden">
-        <div id="lessonOne">
-            <h1>Welcome to Spaces!</h1>
-            <p >Get started by naming your open spaces.<br />
-            To create new spaces simply open a new chrome window.</p>
-        </div>
-        <div id="lessonTwo">
-            <h1>Great!</h1>
-            <p>To access this screen and other features while browsing, click the spaces icon in your browser.<br />
-            Thanks for trying Spaces :)</p>
-        </div>
-    </div>
+            <div class="header">
+                <form id="nameForm">
+                    <span id="nameDisplay"></span>
+                    <input type="text" placeholder="Name this space" />
+                </form>
+                <span id='actionSwitch' title="Switch to this space" class="button fa fa-arrow-circle-right"></span>
+                <span id='actionOpen' title="Open this space" class="button fa fa-external-link"></span>
+                <div class="buttonNav">
+                    <span id='actionEdit' title="Rename space" class="button fa fa-pencil"></span>
+                    <span id='actionExport' title="Export space" class="button fa fa-download"></span>
+                    <span id='actionDelete' title="Delete space" class="button fa fa-trash"></span>
+                </div>
+            </div>
 
-    <div class="blocker"></div>
-    <div class="modal">
-        <h2>Import a new space</h2>
-        <textarea id="importTextArea" spellcheck="false" placeholder="Paste a list of line-separated urls or the contents of a spaces backup file" wrap="off" rows="10"></textarea>
-        <a id="importBtn" class="button" href="#">Import</a>
-    </div>
+            <div class="contentBody">
+                <h2>Active tabs:</h2>
+                <ul id="activeTabs" class="tabsList"></ul>
+                <h2>Recently closed tabs:</h2>
+                <ul id="historicalTabs" class="tabsList"></ul>
+            </div>
+        </div>
 
-</div>
+        <div id="banner" class="hidden">
+            <div id="lessonOne">
+                <h1>Welcome to Spaces!</h1>
+                <p>Get started by naming your open spaces.<br />
+                    To create new spaces simply open a new chrome window.</p>
+            </div>
+            <div id="lessonTwo">
+                <h1>Great!</h1>
+                <p>To access this screen and other features while browsing, click the spaces icon in your browser.<br />
+                    Thanks for trying Spaces :)</p>
+            </div>
+        </div>
+
+        <div class="blocker"></div>
+        <div class="modal">
+            <h2>Import a new space</h2>
+            <textarea id="importTextArea" spellcheck="false"
+                placeholder="Paste a list of line-separated urls or the contents of a spaces backup file" wrap="off"
+                rows="10"></textarea>
+            <a id="importBtn" class="button" href="#">Import</a>
+        </div>
+
+    </div>
 </body>
+
 </html>
