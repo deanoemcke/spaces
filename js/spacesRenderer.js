@@ -164,7 +164,7 @@ var spacesRenderer = {
             return `[${firstTitle}]`;
         }
         return firstTitle.length > 30
-            ? `[${firstTitle.slice(0, 24)}&hellip;] +${count - 1} more`
+            ? `[${firstTitle.slice(0, 21)}&hellip;] +${count - 1} more`
             : `[${firstTitle}] +${count - 1} more`;
     },
 
