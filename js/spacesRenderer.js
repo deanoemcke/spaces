@@ -212,6 +212,7 @@ var spacesRenderer = {
         if (this.nodes.newSpace) {
             if (!exactMatch && query.length > 0) {
                 this.nodes.newSpaceTitle.innerHTML = query;
+                this.nodes.newSpace.setAttribute('data-spaceName', query);
                 this.nodes.newSpace.className = 'space';
                 this.nodes.newSpace.style.display = 'flex';
                 this.nodes.newSpace.style.visibility = 'visible';
