@@ -80,9 +80,16 @@
     }
 
     function handleCloseAction() {
-        chrome.runtime.sendMessage({
-            action: 'requestClose',
-        });
+        const opener = chrome.extension
+            .getBackgroundPage()
+            .utils.getHashVariable('opener', window.location.href);
+        if (opener && opener === 'bg') {
+            chrome.runtime.sendMessage({
+                action: 'requestClose',
+            });
+        } else {
+            window.close();
+        }
     }
 
     /*
@@ -427,12 +434,6 @@
             action: 'requestShowSpaces',
             windowId: globalWindowId,
             edit: 'true',
-        });
-    }
-
-    function handleCloseAction() {
-        chrome.runtime.sendMessage({
-            action: 'requestClose',
         });
     }
 })();

@@ -543,7 +543,7 @@ var spaces = (function() {
         generatePopupParams(action, tabUrl).then(params => {
             const popupUrl = `${chrome.extension.getURL(
                 'popup.html'
-            )}#${params}`;
+            )}#opener=bg&${params}`;
             //if spaces  window already exists
             if (spacesPopupWindowId) {
                 chrome.windows.get(
