@@ -28,7 +28,7 @@ Please note that the webstore version may be behind the latest version here.
 
 ### Install as an extension from source
 
-1. Download the **[latest available version](https://github.com/deanoemcke/spaces/archive/v1.1.0.zip)** 
+1. Download the **[latest available version](https://github.com/deanoemcke/spaces/archive/v1.1.1.zip)** 
 2. Unarchive to your preferred location (e.g., `Downloads`).
 2. In **Google Chrome**, navigate to [chrome://extensions/](chrome://extensions/) and enable <kbd>Developer mode</kbd> in the upper right corner.
 3. Click on the <kbd>LOAD UNPACKED</kbd> button.
