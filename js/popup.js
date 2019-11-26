@@ -17,40 +17,47 @@
      * POPUP INIT
      */
 
-    document.addEventListener('DOMContentLoaded', function() {
-        chrome.extension
+    document.addEventListener('DOMContentLoaded', async function() {
+        var url = chrome.extension
             .getBackgroundPage()
-            .spaces.requestCurrentSpace(function(space) {
-                globalCurrentSpace = space;
-                globalTabId = chrome.extension
-                    .getBackgroundPage()
-                    .utils.getHashVariable('tabId', window.location.href);
-                var url = chrome.extension
-                    .getBackgroundPage()
-                    .utils.getHashVariable('url', window.location.href);
-                globalUrl = url !== '' ? decodeURIComponent(url) : false;
-                var windowId = chrome.extension
-                    .getBackgroundPage()
-                    .utils.getHashVariable('windowId', window.location.href);
-                globalWindowId = windowId !== '' ? windowId : false;
-                var sessionName = chrome.extension
-                    .getBackgroundPage()
-                    .utils.getHashVariable('sessionName', window.location.href);
-                globalSessionName =
-                    sessionName && sessionName !== 'false'
-                        ? sessionName
-                        : false;
-
-                renderCommon();
-                routeView();
-            });
-    });
-
-    function routeView() {
-        var url = window.location.href;
+            .utils.getHashVariable('url', window.location.href);
+        globalUrl = url !== '' ? decodeURIComponent(url) : false;
+        var windowId = chrome.extension
+            .getBackgroundPage()
+            .utils.getHashVariable('windowId', window.location.href);
+        globalWindowId = windowId !== '' ? windowId : false;
+        globalTabId = chrome.extension
+            .getBackgroundPage()
+            .utils.getHashVariable('tabId', window.location.href);
+        var sessionName = chrome.extension
+            .getBackgroundPage()
+            .utils.getHashVariable('sessionName', window.location.href);
+        globalSessionName =
+            sessionName && sessionName !== 'false' ? sessionName : false;
         var action = chrome.extension
             .getBackgroundPage()
-            .utils.getHashVariable('action', url);
+            .utils.getHashVariable('action', window.location.href);
+
+        var spacesService = chrome.extension.getBackgroundPage().spaces;
+        var requestSpacePromise = globalWindowId
+            ? new Promise(resolve =>
+                  spacesService.requestSpaceFromWindowId(
+                      parseInt(globalWindowId),
+                      resolve
+                  )
+              )
+            : new Promise(resolve =>
+                  spacesService.requestCurrentSpace(resolve)
+              );
+
+        requestSpacePromise.then(function(space) {
+            globalCurrentSpace = space;
+            renderCommon();
+            routeView(action);
+        });
+    });
+
+    function routeView(action) {
         if (action === 'move') {
             renderMoveCard();
         } else if (action === 'switch') {
@@ -75,8 +82,31 @@
             //listen for escape key
             if (e.keyCode === 27) {
                 handleCloseAction();
+                // } else if (e.keyCode === 13) {
+                //     handleNameSave();
             }
         };
+        document
+            .getElementById('spaceEdit')
+            .addEventListener('click', function(e) {
+                handleNameEdit();
+            });
+        document
+            .getElementById('activeSpaceTitle')
+            .addEventListener('focus', function(e) {
+                handleNameEdit();
+            });
+        document.getElementById('activeSpaceTitle').onkeyup = function(e) {
+            //listen for enter key
+            if (e.keyCode === 13) {
+                document.getElementById('activeSpaceTitle').blur();
+            }
+        };
+        document
+            .getElementById('activeSpaceTitle')
+            .addEventListener('blur', function(e) {
+                handleNameSave();
+            });
     }
 
     function handleCloseAction() {
@@ -153,21 +183,6 @@
                         window.location.reload();
                     });
                 // renderMoveCard()
-            });
-        document
-            .getElementById('spaceEdit')
-            .addEventListener('click', function(e) {
-                handleNameEdit();
-            });
-        document
-            .getElementById('activeSpaceTitle')
-            .addEventListener('focus', function(e) {
-                handleNameEdit();
-            });
-        document
-            .getElementById('activeSpaceTitle')
-            .addEventListener('blur', function(e) {
-                handleNameSave();
             });
     }
 
@@ -249,6 +264,7 @@
             sessionId: selectedSpaceEl.getAttribute('data-sessionId'),
             windowId: selectedSpaceEl.getAttribute('data-windowId'),
         });
+        window.close();
     }
 
     /*

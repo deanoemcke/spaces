@@ -25,8 +25,6 @@
                 sessionId,
                 match;
 
-            console.log('initialising spaces..');
-
             //update version numbers
             this.lastVersion = this.fetchLastVersion();
             this.setLastVersion(chrome.runtime.getManifest().version);
@@ -36,7 +34,6 @@
                     chrome.runtime.getManifest().version === '0.18' &&
                     chrome.runtime.getManifest().version !== self.lastVersion
                 ) {
-                    console.log('resetting all session hashes..');
                     self.resetAllSessionHashes(sessions);
                 }
 

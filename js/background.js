@@ -283,6 +283,7 @@ var spaces = (function() {
                 } else if (sessionId) {
                     handleLoadSession(sessionId);
                 }
+
                 return false;
                 break;
 
@@ -432,10 +433,6 @@ var spaces = (function() {
     chrome.runtime.onInstalled.addListener(function(details) {
         if (details.reason == 'install') {
             console.log('This is a first install!');
-            if (debug) {
-                alert('newly installed!');
-                debugger;
-            }
             showSpacesOpenWindow();
         } else if (details.reason == 'update') {
             var thisVersion = chrome.runtime.getManifest().version;
@@ -598,9 +595,6 @@ var spaces = (function() {
 
     function closePopupWindow() {
         if (spacesPopupWindowId) {
-            console.log('closePopupWindow called!');
-            console.trace();
-
             chrome.windows.get(
                 spacesPopupWindowId,
                 { populate: true },
@@ -1126,6 +1120,7 @@ var spaces = (function() {
     }
 
     return {
+        requestSpaceFromWindowId: requestSpaceFromWindowId,
         requestCurrentSpace: requestCurrentSpace,
         requestHotkeys: requestHotkeys,
         generatePopupParams: generatePopupParams,
