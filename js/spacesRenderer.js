@@ -182,7 +182,9 @@ var spacesRenderer = {
         Array.prototype.forEach.call(savedSpaceEls, spaceEl => {
             const curSpaceName = spaceEl.getElementsByClassName('spaceTitle')[0]
                 .innerHTML;
+            const isNamedSpace = !!spaceEl.getAttribute('data-spacename');
             match =
+                (!query || isNamedSpace) &&
                 curSpaceName.toLowerCase().indexOf(query.toLowerCase()) !== -1;
             exactMatch =
                 exactMatch ||
