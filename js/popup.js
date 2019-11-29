@@ -312,7 +312,7 @@
             spaces => {
                 // remove currently visible space
                 const filteredSpaces = spaces.filter(space => {
-                    return space.windowId !== globalWindowId; // loose matching here
+                    return `${space.windowId}` !== globalWindowId;
                 });
                 spacesRenderer.initialise(5, false);
                 spacesRenderer.renderSpaces(filteredSpaces);
