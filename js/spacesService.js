@@ -652,6 +652,11 @@ var spacesService = {
     },
 
     saveNewSession: (sessionName, tabs, windowId, callback) => {
+        if (!tabs) {
+            callback();
+            return;
+        }
+
         const sessionHash = spacesService.generateSessionHash(tabs);
         let session;
 

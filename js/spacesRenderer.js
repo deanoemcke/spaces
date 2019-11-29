@@ -151,7 +151,7 @@ var spacesRenderer = {
     },
 
     getDefaultSpaceTitle: space => {
-        const count = space.tabs.length;
+        const count = space.tabs && space.tabs.length;
         if (!count) return '';
         const firstTitle = space.tabs[0].title;
         if (count === 1) {
@@ -163,7 +163,7 @@ var spacesRenderer = {
     },
 
     getTabDetailsString: space => {
-        const count = space.tabs.length;
+        const count = space.tabs && space.tabs.length;
         const open = space.windowId;
 
         if (open) {
