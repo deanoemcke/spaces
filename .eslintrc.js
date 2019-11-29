@@ -3,10 +3,7 @@ module.exports = {
         browser: true,
         es6: true,
     },
-    extends: [
-        //'standard',
-        'plugin:prettier/recommended',
-    ],
+    extends: ['airbnb-base', 'plugin:prettier/recommended'],
     globals: {
         Atomics: 'readonly',
         SharedArrayBuffer: 'readonly',
@@ -14,5 +11,9 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 2018,
     },
-    rules: {},
+    ignorePatterns: ['db.js'],
+    rules: {
+        'no-use-before-define': 0,
+        'no-underscore-dangle': 0,
+    },
 };

@@ -1,79 +1,80 @@
+/* eslint-disable no-restricted-globals */
+/* eslint-disable no-alert */
+/* global chrome spacesService */
+
 /* spaces
  * Copyright (C) 2015 Dean Oemcke
  */
 
-// eslint-disable-next-line no-unused-vars
-var spaces = (function() {
-    'use strict';
+// eslint-disable-next-line no-unused-vars, no-var
+var spaces = (() => {
+    let spacesPopupWindowId = false;
+    let spacesOpenWindowId = false;
+    const noop = () => {};
+    const debug = false;
 
-    var spacesPopupWindowId = false,
-        spacesOpenWindowId = false,
-        previousAllSpacesList = [],
-        noop = function() {},
-        debug = false;
+    // LISTENERS
 
-    //LISTENERS
-
-    //add listeners for session monitoring
-    chrome.tabs.onCreated.addListener(function(tab) {
-        //this call to checkInternalSpacesWindows actually returns false when it should return true
-        //due to the event being called before the globalWindowIds get set. oh well, never mind.
+    // add listeners for session monitoring
+    chrome.tabs.onCreated.addListener(tab => {
+        // this call to checkInternalSpacesWindows actually returns false when it should return true
+        // due to the event being called before the globalWindowIds get set. oh well, never mind.
         if (checkInternalSpacesWindows(tab.windowId, false)) return;
-        //don't need this listener as the tabUpdated listener also fires when a new tab is created
-        //spacesService.handleTabCreated(tab);
+        // don't need this listener as the tabUpdated listener also fires when a new tab is created
+        // spacesService.handleTabCreated(tab);
         updateSpacesWindow('tabs.onCreated');
     });
-    chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
+    chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
         if (checkInternalSpacesWindows(removeInfo.windowId, false)) return;
-        spacesService.handleTabRemoved(tabId, removeInfo, function() {
+        spacesService.handleTabRemoved(tabId, removeInfo, () => {
             updateSpacesWindow('tabs.onRemoved');
         });
     });
-    chrome.tabs.onMoved.addListener(function(tabId, moveInfo) {
+    chrome.tabs.onMoved.addListener((tabId, moveInfo) => {
         if (checkInternalSpacesWindows(moveInfo.windowId, false)) return;
-        spacesService.handleTabMoved(tabId, moveInfo, function() {
+        spacesService.handleTabMoved(tabId, moveInfo, () => {
             updateSpacesWindow('tabs.onMoved');
         });
     });
-    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         if (checkInternalSpacesWindows(tab.windowId, false)) return;
 
-        spacesService.handleTabUpdated(tab, changeInfo, function() {
+        spacesService.handleTabUpdated(tab, changeInfo, () => {
             updateSpacesWindow('tabs.onUpdated');
         });
     });
-    chrome.windows.onRemoved.addListener(function(windowId) {
+    chrome.windows.onRemoved.addListener(windowId => {
         if (checkInternalSpacesWindows(windowId, true)) return;
-        spacesService.handleWindowRemoved(windowId, true, function() {
+        spacesService.handleWindowRemoved(windowId, true, () => {
             updateSpacesWindow('windows.onRemoved');
         });
 
-        //if this was the last window open and the spaces window is stil open
-        //then close the spaces window also so that chrome exits fully
-        //NOTE: this is a workaround for an issue with the chrome 'restore previous session' option
-        //if the spaces window is the only window open and you try to use it to open a space,
-        //when that space loads, it also loads all the windows from the window that was last closed
-        chrome.windows.getAll({}, function(windows) {
+        // if this was the last window open and the spaces window is stil open
+        // then close the spaces window also so that chrome exits fully
+        // NOTE: this is a workaround for an issue with the chrome 'restore previous session' option
+        // if the spaces window is the only window open and you try to use it to open a space,
+        // when that space loads, it also loads all the windows from the window that was last closed
+        chrome.windows.getAll({}, windows => {
             if (windows.length === 1 && spacesOpenWindowId) {
                 chrome.windows.remove(spacesOpenWindowId);
             }
         });
     });
-    //don't need this listener as the tabUpdated listener also fires when a new window is created
-    /*chrome.windows.onCreated.addListener(function (window) {
+    // don't need this listener as the tabUpdated listener also fires when a new window is created
+    // chrome.windows.onCreated.addListener(function (window) {
 
-        if (checkInternalSpacesWindows(window.id, false)) return;
-        spacesService.handleWindowCreated(window);
-    });*/
+    //     if (checkInternalSpacesWindows(window.id, false)) return;
+    //     spacesService.handleWindowCreated(window);
+    // });
 
-    //add listeners for tab and window focus changes
-    //when a tab or window is changed, close the move tab popup if it is open
-    chrome.windows.onFocusChanged.addListener(function(windowId) {
+    // add listeners for tab and window focus changes
+    // when a tab or window is changed, close the move tab popup if it is open
+    chrome.windows.onFocusChanged.addListener(windowId => {
         // Prevent a click in the popup on Ubunto or ChroneOS from closing the
         // popup prematurely.
         if (
-            windowId == chrome.windows.WINDOW_ID_NONE ||
-            windowId == spacesPopupWindowId
+            windowId === chrome.windows.WINDOW_ID_NONE ||
+            windowId === spacesPopupWindowId
         ) {
             return;
         }
@@ -86,20 +87,19 @@ var spaces = (function() {
         spacesService.handleWindowFocussed(windowId);
     });
 
-    //add listeners for message requests from other extension pages (spaces.html & tab.html)
+    // add listeners for message requests from other extension pages (spaces.html & tab.html)
 
-    chrome.runtime.onMessage.addListener(function(
-        request,
-        sender,
-        sendResponse
-    ) {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (debug) {
-            console.log('listener fired:' + JSON.stringify(request));
+            // eslint-disable-next-line no-console
+            console.log(`listener fired: ${JSON.stringify(request)}`);
         }
 
-        var sessionId, windowId, tabId;
+        let sessionId;
+        let windowId;
+        let tabId;
 
-        //endpoints called by spaces.js
+        // endpoints called by spaces.js
         switch (request.action) {
             case 'loadSession':
                 sessionId = _cleanParameter(request.sessionId);
@@ -107,11 +107,10 @@ var spaces = (function() {
                     handleLoadSession(sessionId);
                     sendResponse(true);
                 }
-                //close the requesting tab (should be spaces.html)
-                //if (!debug) closeChromeTab(sender.tab.id);
+                // close the requesting tab (should be spaces.html)
+                // if (!debug) closeChromeTab(sender.tab.id);
 
                 return true;
-                break;
 
             case 'loadWindow':
                 windowId = _cleanParameter(request.windowId);
@@ -119,11 +118,10 @@ var spaces = (function() {
                     handleLoadWindow(windowId);
                     sendResponse(true);
                 }
-                //close the requesting tab (should be spaces.html)
-                //if (!debug) closeChromeTab(sender.tab.id);
+                // close the requesting tab (should be spaces.html)
+                // if (!debug) closeChromeTab(sender.tab.id);
 
                 return true;
-                break;
 
             case 'loadTabInSession':
                 sessionId = _cleanParameter(request.sessionId);
@@ -131,11 +129,10 @@ var spaces = (function() {
                     handleLoadSession(sessionId, request.tabUrl);
                     sendResponse(true);
                 }
-                //close the requesting tab (should be spaces.html)
-                //if (!debug) closeChromeTab(sender.tab.id);
+                // close the requesting tab (should be spaces.html)
+                // if (!debug) closeChromeTab(sender.tab.id);
 
                 return true;
-                break;
 
             case 'loadTabInWindow':
                 windowId = _cleanParameter(request.windowId);
@@ -143,11 +140,10 @@ var spaces = (function() {
                     handleLoadWindow(windowId, request.tabUrl);
                     sendResponse(true);
                 }
-                //close the requesting tab (should be spaces.html)
-                //if (!debug) closeChromeTab(sender.tab.id);
+                // close the requesting tab (should be spaces.html)
+                // if (!debug) closeChromeTab(sender.tab.id);
 
                 return true;
-                break;
 
             case 'saveNewSession':
                 windowId = _cleanParameter(request.windowId);
@@ -158,22 +154,19 @@ var spaces = (function() {
                         sendResponse
                     );
                 }
-                return true; //allow async response
-                break;
+                return true; // allow async response
 
             case 'importNewSession':
                 if (request.urlList) {
                     handleImportNewSession(request.urlList, sendResponse);
                 }
-                return true; //allow async response
-                break;
+                return true; // allow async response
 
             case 'restoreFromBackup':
                 if (request.spaces) {
                     handleRestoreFromBackup(request.spaces, sendResponse);
                 }
-                return true; //allow async response
-                break;
+                return true; // allow async response
 
             case 'deleteSession':
                 sessionId = _cleanParameter(request.sessionId);
@@ -181,7 +174,6 @@ var spaces = (function() {
                     handleDeleteSession(sessionId, false, sendResponse);
                 }
                 return true;
-                break;
 
             case 'updateSessionName':
                 sessionId = _cleanParameter(request.sessionId);
@@ -193,7 +185,6 @@ var spaces = (function() {
                     );
                 }
                 return true;
-                break;
 
             case 'requestSpaceDetail':
                 windowId = _cleanParameter(request.windowId);
@@ -209,70 +200,60 @@ var spaces = (function() {
                     requestSpaceFromSessionId(sessionId, sendResponse);
                 }
                 return true;
-                break;
 
-            //end points called by tag.js and switcher.js
-            //note: some of these endpoints will close the requesting tab
+            // end points called by tag.js and switcher.js
+            // note: some of these endpoints will close the requesting tab
             case 'requestAllSpaces':
-                requestAllSpaces(function(allSpaces) {
-                    previousAllSpacesList = allSpaces;
+                requestAllSpaces(allSpaces => {
                     sendResponse(allSpaces);
                 });
                 return true;
-                break;
 
             case 'requestHotkeys':
                 requestHotkeys(sendResponse);
                 return true;
-                break;
 
             case 'requestTabDetail':
                 tabId = _cleanParameter(request.tabId);
                 if (tabId) {
-                    requestTabDetail(tabId, function(tab) {
+                    requestTabDetail(tabId, tab => {
                         if (tab) {
                             sendResponse(tab);
                         } else {
-                            //close the requesting tab (should be tab.html)
+                            // close the requesting tab (should be tab.html)
                             closePopupWindow();
                         }
                     });
                 }
                 return true;
-                break;
 
             case 'requestShowSpaces':
                 windowId = _cleanParameter(request.windowId);
 
-                //show the spaces tab in edit mode for the passed in windowId
+                // show the spaces tab in edit mode for the passed in windowId
                 if (windowId) {
                     showSpacesOpenWindow(windowId, request.edit);
                 } else {
                     showSpacesOpenWindow();
                 }
                 return false;
-                break;
 
             case 'requestShowSwitcher':
                 showSpacesSwitchWindow();
                 return false;
-                break;
 
             case 'requestShowMover':
                 showSpacesMoveWindow();
                 return false;
-                break;
 
             case 'requestShowKeyboardShortcuts':
                 createShortcutsWindow();
                 return false;
-                break;
 
             case 'requestClose':
-                //close the requesting tab (should be tab.html)
+                // close the requesting tab (should be tab.html)
                 closePopupWindow();
                 return false;
-                break;
 
             case 'switchToSpace':
                 windowId = _cleanParameter(request.windowId);
@@ -285,7 +266,6 @@ var spaces = (function() {
                 }
 
                 return false;
-                break;
 
             case 'addLinkToNewSession':
                 tabId = _cleanParameter(request.tabId);
@@ -293,17 +273,16 @@ var spaces = (function() {
                     handleAddLinkToNewSession(
                         request.url,
                         request.sessionName,
-                        function(result) {
+                        result => {
                             if (result)
                                 updateSpacesWindow('addLinkToNewSession');
 
-                            //close the requesting tab (should be tab.html)
+                            // close the requesting tab (should be tab.html)
                             closePopupWindow();
                         }
                     );
                 }
                 return false;
-                break;
 
             case 'moveTabToNewSession':
                 tabId = _cleanParameter(request.tabId);
@@ -311,138 +290,127 @@ var spaces = (function() {
                     handleMoveTabToNewSession(
                         tabId,
                         request.sessionName,
-                        function(result) {
+                        result => {
                             if (result)
                                 updateSpacesWindow('moveTabToNewSession');
 
-                            //close the requesting tab (should be tab.html)
+                            // close the requesting tab (should be tab.html)
                             closePopupWindow();
                         }
                     );
                 }
                 return false;
-                break;
 
             case 'addLinkToSession':
                 sessionId = _cleanParameter(request.sessionId);
 
                 if (sessionId && request.url) {
-                    handleAddLinkToSession(request.url, sessionId, function(
-                        result
-                    ) {
+                    handleAddLinkToSession(request.url, sessionId, result => {
                         if (result) updateSpacesWindow('addLinkToSession');
 
-                        //close the requesting tab (should be tab.html)
+                        // close the requesting tab (should be tab.html)
                         closePopupWindow();
                     });
                 }
                 return false;
-                break;
 
             case 'moveTabToSession':
                 sessionId = _cleanParameter(request.sessionId);
                 tabId = _cleanParameter(request.tabId);
 
                 if (sessionId && tabId) {
-                    handleMoveTabToSession(tabId, sessionId, function(result) {
+                    handleMoveTabToSession(tabId, sessionId, result => {
                         if (result) updateSpacesWindow('moveTabToSession');
 
-                        //close the requesting tab (should be tab.html)
+                        // close the requesting tab (should be tab.html)
                         closePopupWindow();
                     });
                 }
                 return false;
-                break;
 
             case 'addLinkToWindow':
                 windowId = _cleanParameter(request.windowId);
 
                 if (windowId && request.url) {
-                    handleAddLinkToWindow(request.url, windowId, function(
-                        result
-                    ) {
+                    handleAddLinkToWindow(request.url, windowId, result => {
                         if (result) updateSpacesWindow('addLinkToWindow');
 
-                        //close the requesting tab (should be tab.html)
+                        // close the requesting tab (should be tab.html)
                         closePopupWindow();
                     });
                 }
                 return false;
-                break;
 
             case 'moveTabToWindow':
                 windowId = _cleanParameter(request.windowId);
                 tabId = _cleanParameter(request.tabId);
 
                 if (windowId && tabId) {
-                    handleMoveTabToWindow(tabId, windowId, function(result) {
+                    handleMoveTabToWindow(tabId, windowId, result => {
                         if (result) updateSpacesWindow('moveTabToWindow');
 
-                        //close the requesting tab (should be tab.html)
+                        // close the requesting tab (should be tab.html)
                         closePopupWindow();
                     });
                 }
                 return false;
-                break;
 
             default:
                 return false;
-                break;
         }
     });
     function _cleanParameter(param) {
         if (typeof param === 'number') {
             return param;
-        } else if (param === 'false') {
-            return false;
-        } else if (param === 'true') {
-            return true;
-        } else {
-            return parseInt(param, 10);
         }
+        if (param === 'false') {
+            return false;
+        }
+        if (param === 'true') {
+            return true;
+        }
+        return parseInt(param, 10);
     }
 
-    //add listeners for keyboard commands
+    // add listeners for keyboard commands
 
-    chrome.commands.onCommand.addListener(function(command) {
-        //handle showing the move tab popup (tab.html)
+    chrome.commands.onCommand.addListener(command => {
+        // handle showing the move tab popup (tab.html)
         if (command === 'spaces-move') {
             showSpacesMoveWindow();
 
-            //handle showing the switcher tab popup (switcher.html)
+            // handle showing the switcher tab popup (switcher.html)
         } else if (command === 'spaces-switch') {
             showSpacesSwitchWindow();
         }
     });
 
-    //add context menu entry
+    // add context menu entry
 
     chrome.contextMenus.create({
         id: 'spaces-add-link',
         title: 'Add link to space...',
         contexts: ['link'],
     });
-    chrome.contextMenus.onClicked.addListener(function(info, tab) {
-        //handle showing the move tab popup (tab.html)
+    chrome.contextMenus.onClicked.addListener(info => {
+        // handle showing the move tab popup (tab.html)
         if (info.menuItemId === 'spaces-add-link') {
             showSpacesMoveWindow(info.linkUrl);
         }
     });
 
-    //runtime extension install listener
-    chrome.runtime.onInstalled.addListener(function(details) {
-        if (details.reason == 'install') {
+    // runtime extension install listener
+    chrome.runtime.onInstalled.addListener(details => {
+        if (details.reason === 'install') {
+            // eslint-disable-next-line no-console
             console.log('This is a first install!');
             showSpacesOpenWindow();
-        } else if (details.reason == 'update') {
-            var thisVersion = chrome.runtime.getManifest().version;
+        } else if (details.reason === 'update') {
+            const thisVersion = chrome.runtime.getManifest().version;
             if (details.previousVersion !== thisVersion) {
+                // eslint-disable-next-line no-console
                 console.log(
-                    'Updated from ' +
-                        details.previousVersion +
-                        ' to ' +
-                        thisVersion +
-                        '!'
+                    `Updated from ${details.previousVersion} to ${thisVersion}!`
                 );
             }
         }
@@ -453,39 +421,43 @@ var spaces = (function() {
     }
 
     function showSpacesOpenWindow(windowId, editMode) {
-        var url;
+        let url;
 
         if (editMode && windowId) {
             url = chrome.extension.getURL(
-                'spaces.html#windowId=' + windowId + '&editMode=true'
+                `spaces.html#windowId=${windowId}&editMode=true`
             );
         } else {
             url = chrome.extension.getURL('spaces.html');
         }
 
-        //if spaces open window already exists then just give it focus (should be up to date)
+        // if spaces open window already exists then just give it focus (should be up to date)
         if (spacesOpenWindowId) {
-            chrome.windows.get(spacesOpenWindowId, { populate: true }, function(
-                window
-            ) {
-                chrome.windows.update(spacesOpenWindowId, { focused: true });
-                if (window.tabs[0].id) {
-                    chrome.tabs.update(window.tabs[0].id, { url: url });
+            chrome.windows.get(
+                spacesOpenWindowId,
+                { populate: true },
+                window => {
+                    chrome.windows.update(spacesOpenWindowId, {
+                        focused: true,
+                    });
+                    if (window.tabs[0].id) {
+                        chrome.tabs.update(window.tabs[0].id, { url });
+                    }
                 }
-            });
+            );
 
-            //otherwise re-create it
+            // otherwise re-create it
         } else {
             chrome.windows.create(
                 {
                     type: 'popup',
-                    url: url,
+                    url,
                     height: screen.height - 100,
                     width: Math.min(screen.width, 1000),
                     top: 0,
                     left: 0,
                 },
-                function(window) {
+                window => {
                     spacesOpenWindowId = window.id;
                 }
             );
@@ -499,39 +471,29 @@ var spaces = (function() {
     }
 
     async function generatePopupParams(action, tabUrl) {
-        //get currently highlighted tab
+        // get currently highlighted tab
         const tabs = await new Promise(resolve => {
             chrome.tabs.query({ active: true, currentWindow: true }, resolve);
         });
+        if (tabs.length === 0) return '';
 
-        if (tabs.length === 0) return;
+        const activeTab = tabs[0];
 
-        var activeTab = tabs[0],
-            name,
-            url,
-            session;
-
-        //make sure that the active tab is not from an internal spaces window
+        // make sure that the active tab is not from an internal spaces window
         if (checkInternalSpacesWindows(activeTab.windowId, false)) {
-            return;
+            return '';
         }
 
-        session = spacesService.getSessionByWindowId(activeTab.windowId);
+        const session = spacesService.getSessionByWindowId(activeTab.windowId);
 
-        name = session ? session.name : '';
+        const name = session ? session.name : '';
 
-        var params =
-            'action=' +
-            action +
-            '&windowId=' +
-            activeTab.windowId +
-            '&sessionName=' +
-            name;
+        let params = `action=${action}&windowId=${activeTab.windowId}&sessionName=${name}`;
 
         if (tabUrl) {
-            params += '&url=' + encodeURIComponent(tabUrl);
+            params += `&url=${encodeURIComponent(tabUrl)}`;
         } else {
-            params += '&tabId=' + activeTab.id;
+            params += `&tabId=${activeTab.id}`;
         }
         return params;
     }
@@ -541,17 +503,15 @@ var spaces = (function() {
             const popupUrl = `${chrome.extension.getURL(
                 'popup.html'
             )}#opener=bg&${params}`;
-            //if spaces  window already exists
+            // if spaces  window already exists
             if (spacesPopupWindowId) {
                 chrome.windows.get(
                     spacesPopupWindowId,
                     { populate: true },
-                    function(window) {
-                        //if window is currently focused then don't update
+                    window => {
+                        // if window is currently focused then don't update
                         if (window.focused) {
-                            return;
-
-                            //else update popupUrl and give it focus
+                            // else update popupUrl and give it focus
                         } else {
                             chrome.windows.update(spacesPopupWindowId, {
                                 focused: true,
@@ -565,7 +525,7 @@ var spaces = (function() {
                     }
                 );
 
-                //otherwise create it
+                // otherwise create it
             } else {
                 chrome.windows.create(
                     {
@@ -577,18 +537,10 @@ var spaces = (function() {
                         top: screen.height - 450,
                         left: screen.width - 310,
                     },
-                    function(window) {
+                    window => {
                         spacesPopupWindowId = window.id;
                     }
                 );
-            }
-        });
-    }
-
-    function closeChromeTab(tabId) {
-        chrome.tabs.remove(tabId, function(result) {
-            if (chrome.runtime.lastError) {
-                console.log(chrome.runtime.lastError.message);
             }
         });
     }
@@ -598,8 +550,8 @@ var spaces = (function() {
             chrome.windows.get(
                 spacesPopupWindowId,
                 { populate: true },
-                function(spacesWindow) {
-                    //remove popup from history
+                spacesWindow => {
+                    // remove popup from history
                     if (
                         spacesWindow.tabs.length > 0 &&
                         spacesWindow.tabs[0].url
@@ -609,9 +561,10 @@ var spaces = (function() {
                         });
                     }
 
-                    //remove popup window
-                    chrome.windows.remove(spacesWindow.id, function(result) {
+                    // remove popup window
+                    chrome.windows.remove(spacesWindow.id, () => {
                         if (chrome.runtime.lastError) {
+                            // eslint-disable-next-line no-console
                             console.log(chrome.runtime.lastError.message);
                         }
                     });
@@ -622,9 +575,10 @@ var spaces = (function() {
 
     function updateSpacesWindow(source) {
         if (debug)
-            console.log('updateSpacesWindow triggered. source: ' + source);
+            // eslint-disable-next-line no-console
+            console.log(`updateSpacesWindow triggered. source: ${source}`);
 
-        requestAllSpaces(function(allSpaces) {
+        requestAllSpaces(allSpaces => {
             chrome.runtime.sendMessage({
                 action: 'updateSpaces',
                 spaces: allSpaces,
@@ -636,41 +590,40 @@ var spaces = (function() {
         if (windowId === spacesOpenWindowId) {
             if (windowClosed) spacesOpenWindowId = false;
             return true;
-        } else if (windowId === spacesPopupWindowId) {
+        }
+        if (windowId === spacesPopupWindowId) {
             if (windowClosed) spacesPopupWindowId = false;
             return true;
         }
+        return false;
     }
 
     function checkSessionOverwrite(session) {
-        //make sure session being overwritten is not currently open
+        // make sure session being overwritten is not currently open
         if (session.windowId) {
             alert(
-                "A session with the name '" +
-                    session.name +
-                    "' is currently open an cannot be overwritten"
+                `A session with the name '${session.name}' is currently open an cannot be overwritten`
             );
             return false;
 
-            //otherwise prompt to see if user wants to overwrite session
-        } else {
-            return window.confirm(
-                'Replace existing space: ' + session.name + '?'
-            );
+            // otherwise prompt to see if user wants to overwrite session
         }
+        return window.confirm(`Replace existing space: ${session.name}?`);
     }
 
     function checkSessionDelete(session) {
         return window.confirm(
-            'Are you sure you want to delete the space: ' + session.name + '?'
+            `Are you sure you want to delete the space: ${session.name}?`
         );
     }
 
     function requestHotkeys(callback) {
-        chrome.commands.getAll(function(commands) {
-            var switchStr, moveStr, spacesStr;
+        chrome.commands.getAll(commands => {
+            let switchStr;
+            let moveStr;
+            let spacesStr;
 
-            commands.forEach(function(command) {
+            commands.forEach(command => {
                 if (command.name === 'spaces-switch') {
                     switchStr = command.shortcut;
                 } else if (command.name === 'spaces-move') {
@@ -693,16 +646,16 @@ var spaces = (function() {
     }
 
     function requestCurrentSpace(callback) {
-        chrome.windows.getCurrent(function(window) {
+        chrome.windows.getCurrent(window => {
             requestSpaceFromWindowId(window.id, callback);
         });
     }
 
-    //returns a 'space' object which is essentially the same as a session object
-    //except that includes space.sessionId (session.id) and space.windowId
+    // returns a 'space' object which is essentially the same as a session object
+    // except that includes space.sessionId (session.id) and space.windowId
     function requestSpaceFromWindowId(windowId, callback) {
-        //first check for an existing session matching this windowId
-        var session = spacesService.getSessionByWindowId(windowId);
+        // first check for an existing session matching this windowId
+        const session = spacesService.getSessionByWindowId(windowId);
 
         if (session) {
             callback({
@@ -713,10 +666,10 @@ var spaces = (function() {
                 history: session.history,
             });
 
-            //otherwise build a space object out of the actual window
+            // otherwise build a space object out of the actual window
         } else {
-            chrome.windows.get(windowId, { populate: true }, function(window) {
-                //if failed to load requested window
+            chrome.windows.get(windowId, { populate: true }, window => {
+                // if failed to load requested window
                 if (chrome.runtime.lastError) {
                     callback(false);
                 } else {
@@ -733,7 +686,7 @@ var spaces = (function() {
     }
 
     function requestSpaceFromSessionId(sessionId, callback) {
-        var session = spacesService.getSessionBySessionId(sessionId);
+        const session = spacesService.getSessionBySessionId(sessionId);
 
         callback({
             sessionId: session.id,
@@ -745,59 +698,52 @@ var spaces = (function() {
     }
 
     function requestAllSpaces(callback) {
-        var sessions, allSpaces;
-
-        chrome.windows.getAll({ populate: true }, function(windows) {
-            sessions = spacesService.getAllSessions();
-
-            allSpaces = sessions.map(function(session) {
-                return {
-                    sessionId: session.id,
-                    windowId: session.windowId,
-                    name: session.name,
-                    tabs: session.tabs,
-                    history: session.history,
-                    lastAccess: session.lastAccess,
-                };
-            });
-
-            //sort results
-            allSpaces.sort(spaceDateCompare);
-
-            callback(allSpaces);
+        const sessions = spacesService.getAllSessions();
+        const allSpaces = sessions.map(session => {
+            return {
+                sessionId: session.id,
+                windowId: session.windowId,
+                name: session.name,
+                tabs: session.tabs,
+                history: session.history,
+                lastAccess: session.lastAccess,
+            };
         });
+
+        // sort results
+        allSpaces.sort(spaceDateCompare);
+
+        callback(allSpaces);
     }
 
     function spaceDateCompare(a, b) {
-        //order open sessions first
+        // order open sessions first
         if (a.windowId && !b.windowId) {
             return -1;
-        } else if (!a.windowId && b.windowId) {
-            return 1;
-
-            //then order by last access date
-        } else if (a.lastAccess > b.lastAccess) {
-            return -1;
-        } else if (a.lastAccess < b.lastAccess) {
-            return 1;
-        } else {
-            return 0;
         }
+        if (!a.windowId && b.windowId) {
+            return 1;
+        }
+        // then order by last access date
+        if (a.lastAccess > b.lastAccess) {
+            return -1;
+        }
+        if (a.lastAccess < b.lastAccess) {
+            return 1;
+        }
+        return 0;
     }
 
     function handleLoadSession(sessionId, tabUrl) {
-        var session = spacesService.getSessionBySessionId(sessionId),
-            pinnedTabId,
-            urls,
-            match;
+        const session = spacesService.getSessionBySessionId(sessionId);
 
-        //if space is already open, then give it focus
+        // if space is already open, then give it focus
         if (session.windowId) {
             handleLoadWindow(session.windowId, tabUrl);
 
-            //else load space in new window
+            // else load space in new window
         } else {
-            urls = session.tabs.map(function(curTab) {
+            const urls = session.tabs.map(curTab => {
                 return curTab.url;
             });
             chrome.windows.create(
@@ -808,19 +754,20 @@ var spaces = (function() {
                     top: 0,
                     left: 0,
                 },
-                function(newWindow) {
-                    //force match this new window to the session
+                newWindow => {
+                    // force match this new window to the session
                     spacesService.matchSessionToWindow(session, newWindow);
 
-                    //after window has loaded try to pin any previously pinned tabs
-                    session.tabs.forEach(function(curSessionTab) {
+                    // after window has loaded try to pin any previously pinned tabs
+                    session.tabs.forEach(curSessionTab => {
                         if (curSessionTab.pinned) {
-                            pinnedTabId = false;
-                            newWindow.tabs.some(function(curNewTab) {
+                            let pinnedTabId = false;
+                            newWindow.tabs.some(curNewTab => {
                                 if (curNewTab.url === curSessionTab.url) {
                                     pinnedTabId = curNewTab.id;
                                     return true;
                                 }
+                                return false;
                             });
                             if (pinnedTabId) {
                                 chrome.tabs.update(pinnedTabId, {
@@ -830,31 +777,31 @@ var spaces = (function() {
                         }
                     });
 
-                    //if tabUrl is defined, then focus this tab
+                    // if tabUrl is defined, then focus this tab
                     if (tabUrl) {
                         focusOrLoadTabInWindow(newWindow, tabUrl);
                     }
 
-                    /*session.tabs.forEach(function (curTab) {
+                    /* session.tabs.forEach(function (curTab) {
                     chrome.tabs.create({windowId: newWindow.id, url: curTab.url, pinned: curTab.pinned, active: false});
                 });
 
                 chrome.tabs.query({windowId: newWindow.id, index: 0}, function (tabs) {
                     chrome.tabs.remove(tabs[0].id);
-                });*/
+                }); */
                 }
             );
         }
     }
     function handleLoadWindow(windowId, tabUrl) {
-        //assume window is already open, give it focus
+        // assume window is already open, give it focus
         if (windowId) {
             focusWindow(windowId);
         }
 
-        //if tabUrl is defined, then focus this tab
+        // if tabUrl is defined, then focus this tab
         if (tabUrl) {
-            chrome.windows.get(windowId, { populate: true }, function(window) {
+            chrome.windows.get(windowId, { populate: true }, window => {
                 focusOrLoadTabInWindow(window, tabUrl);
             });
         }
@@ -865,13 +812,12 @@ var spaces = (function() {
     }
 
     function focusOrLoadTabInWindow(window, tabUrl) {
-        var match;
-
-        match = window.tabs.some(function(tab) {
+        const match = window.tabs.some(tab => {
             if (tab.url === tabUrl) {
                 chrome.tabs.update(tab.id, { active: true });
                 return true;
             }
+            return false;
         });
         if (!match) {
             chrome.tabs.create({ url: tabUrl });
@@ -879,19 +825,18 @@ var spaces = (function() {
     }
 
     function handleSaveNewSession(windowId, sessionName, callback) {
-        chrome.windows.get(windowId, { populate: true }, function(curWindow) {
-            var existingSession = spacesService.getSessionByName(sessionName);
+        chrome.windows.get(windowId, { populate: true }, curWindow => {
+            const existingSession = spacesService.getSessionByName(sessionName);
 
-            //if session with same name already exist, then prompt to override the existing session
+            // if session with same name already exist, then prompt to override the existing session
             if (existingSession) {
                 if (!checkSessionOverwrite(existingSession)) {
                     callback(false);
                     return;
 
-                    //if we choose to overwrite, delete the existing session
-                } else {
-                    handleDeleteSession(existingSession.id, true, noop);
+                    // if we choose to overwrite, delete the existing session
                 }
+                handleDeleteSession(existingSession.id, true, noop);
             }
             spacesService.saveNewSession(
                 sessionName,
@@ -899,24 +844,25 @@ var spaces = (function() {
                 curWindow.id,
                 callback
             );
-            return;
         });
     }
 
-    function handleRestoreFromBackup(spaces, callback) {
-        var existingSession, performSave, triggerCallback;
+    function handleRestoreFromBackup(_spaces, callback) {
+        let existingSession;
+        let performSave;
+        let triggerCallback;
 
-        spaces.forEach(function(space, index, spacesArray) {
+        _spaces.forEach((space, index, spacesArray) => {
             existingSession = spacesService.getSessionByName(space.name);
             performSave = true;
             triggerCallback = index === spacesArray.length - 1;
 
-            //if session with same name already exist, then prompt to override the existing session
+            // if session with same name already exist, then prompt to override the existing session
             if (existingSession) {
                 if (!checkSessionOverwrite(existingSession)) {
                     performSave = false;
 
-                    //if we choose to overwrite, delete the existing session
+                    // if we choose to overwrite, delete the existing session
                 } else {
                     handleDeleteSession(existingSession.id, true, noop);
                 }
@@ -927,7 +873,7 @@ var spaces = (function() {
                     space.name,
                     space.tabs,
                     false,
-                    function(savedSession) {
+                    () => {
                         if (triggerCallback) callback(null);
                     }
                 );
@@ -938,181 +884,162 @@ var spaces = (function() {
     }
 
     function handleImportNewSession(urlList, callback) {
-        var tempName = 'Imported space: ',
-            tabList = [],
-            count = 1;
+        let tempName = 'Imported space: ';
+        let count = 1;
 
         while (spacesService.getSessionByName(tempName + count)) {
-            count++;
+            count += 1;
         }
 
-        tempName = tempName + count;
+        tempName += count;
 
-        tabList = urlList.map(function(text) {
+        const tabList = urlList.map(text => {
             return { url: text };
         });
 
-        //save session to database
+        // save session to database
         spacesService.saveNewSession(tempName, tabList, false, callback);
     }
 
     function handleUpdateSessionName(sessionId, sessionName, callback) {
-        //check to make sure session name doesn't already exist
-        var existingSession = spacesService.getSessionByName(sessionName);
+        // check to make sure session name doesn't already exist
+        const existingSession = spacesService.getSessionByName(sessionName);
 
-        //if session with same name already exist, then prompt to override the existing session
+        // if session with same name already exist, then prompt to override the existing session
         if (existingSession && existingSession.id !== sessionId) {
             if (!checkSessionOverwrite(existingSession)) {
                 callback(false);
                 return;
 
-                //if we choose to override, then delete the existing session
-            } else {
-                handleDeleteSession(existingSession.id, true, noop);
+                // if we choose to override, then delete the existing session
             }
+            handleDeleteSession(existingSession.id, true, noop);
         }
         spacesService.updateSessionName(sessionId, sessionName, callback);
-        return;
     }
 
     function handleDeleteSession(sessionId, force, callback) {
-        var session = spacesService.getSessionBySessionId(sessionId);
+        const session = spacesService.getSessionBySessionId(sessionId);
         if (!force && !checkSessionDelete(session)) {
             callback(false);
-            return;
         } else {
             spacesService.deleteSession(sessionId, callback);
-            return;
         }
     }
 
     function handleAddLinkToNewSession(url, sessionName, callback) {
-        var session = spacesService.getSessionByName(sessionName),
-            newTabs = [{ url: url }];
+        const session = spacesService.getSessionByName(sessionName);
+        const newTabs = [{ url }];
 
-        //if we found a session matching this name then return as an error as we are
-        //supposed to be creating a new session with this name
+        // if we found a session matching this name then return as an error as we are
+        // supposed to be creating a new session with this name
         if (session) {
             callback(false);
-            return;
 
-            //else create a new session with this name containing this url
+            // else create a new session with this name containing this url
         } else {
             spacesService.saveNewSession(sessionName, newTabs, false, callback);
-            return;
         }
     }
 
     function handleMoveTabToNewSession(tabId, sessionName, callback) {
-        requestTabDetail(tabId, function(tab) {
-            var session = spacesService.getSessionByName(sessionName);
+        requestTabDetail(tabId, tab => {
+            const session = spacesService.getSessionByName(sessionName);
 
-            //if we found a session matching this name then return as an error as we are
-            //supposed to be creating a new session with this name
+            // if we found a session matching this name then return as an error as we are
+            // supposed to be creating a new session with this name
             if (session) {
                 callback(false);
-                return;
 
-                //else create a new session with this name containing this tab
+                //  else create a new session with this name containing this tab
             } else {
-                //remove tab from current window (should generate window events)
+                // remove tab from current window (should generate window events)
                 chrome.tabs.remove(tab.id);
 
-                //save session to database
+                // save session to database
                 spacesService.saveNewSession(
                     sessionName,
                     [tab],
                     false,
                     callback
                 );
-                return;
             }
         });
     }
 
     function handleAddLinkToSession(url, sessionId, callback) {
-        var session = spacesService.getSessionBySessionId(sessionId),
-            newTabs = [{ url: url }];
+        const session = spacesService.getSessionBySessionId(sessionId);
+        const newTabs = [{ url }];
 
-        //if we have not found a session matching this name then return as an error as we are
-        //supposed to be adding the tab to an existing session
+        // if we have not found a session matching this name then return as an error as we are
+        // supposed to be adding the tab to an existing session
         if (!session) {
             callback(false);
             return;
-        } else {
-            //if session is currently open then add link directly
-            if (session.windowId) {
-                handleAddLinkToWindow(url, session.windowId, callback);
-                return;
+        }
+        // if session is currently open then add link directly
+        if (session.windowId) {
+            handleAddLinkToWindow(url, session.windowId, callback);
 
-                //else add tab to saved session in database
-            } else {
-                //update session in db
-                session.tabs = session.tabs.concat(newTabs);
-                spacesService.updateSessionTabs(
-                    session.id,
-                    session.tabs,
-                    callback
-                );
-                return;
-            }
+            // else add tab to saved session in database
+        } else {
+            // update session in db
+            session.tabs = session.tabs.concat(newTabs);
+            spacesService.updateSessionTabs(session.id, session.tabs, callback);
         }
     }
 
     function handleAddLinkToWindow(url, windowId, callback) {
-        chrome.tabs.create({ windowId: windowId, url: url, active: false });
+        chrome.tabs.create({ windowId, url, active: false });
 
-        //NOTE: this move does not seem to trigger any tab event listeners
-        //so we need to update sessions manually
+        // NOTE: this move does not seem to trigger any tab event listeners
+        // so we need to update sessions manually
         spacesService.queueWindowEvent(windowId);
 
         callback(true);
     }
 
     function handleMoveTabToSession(tabId, sessionId, callback) {
-        requestTabDetail(tabId, function(tab) {
-            var session = spacesService.getSessionBySessionId(sessionId),
-                newTabs = [tab];
+        requestTabDetail(tabId, tab => {
+            const session = spacesService.getSessionBySessionId(sessionId);
+            const newTabs = [tab];
 
-            //if we have not found a session matching this name then return as an error as we are
-            //supposed to be adding the tab to an existing session
+            // if we have not found a session matching this name then return as an error as we are
+            // supposed to be adding the tab to an existing session
             if (!session) {
                 callback(false);
-                return;
             } else {
-                //if session is currently open then move it directly
+                // if session is currently open then move it directly
                 if (session.windowId) {
                     moveTabToWindow(tab, session.windowId, callback);
                     return;
-
-                    //else add tab to saved session in database
-                } else {
-                    //remove tab from current window
-                    chrome.tabs.remove(tab.id);
-
-                    //update session in db
-                    session.tabs = session.tabs.concat(newTabs);
-                    spacesService.updateSessionTabs(
-                        session.id,
-                        session.tabs,
-                        callback
-                    );
-                    return;
                 }
+
+                // else add tab to saved session in database
+                // remove tab from current window
+                chrome.tabs.remove(tab.id);
+
+                // update session in db
+                session.tabs = session.tabs.concat(newTabs);
+                spacesService.updateSessionTabs(
+                    session.id,
+                    session.tabs,
+                    callback
+                );
             }
         });
     }
 
     function handleMoveTabToWindow(tabId, windowId, callback) {
-        requestTabDetail(tabId, function(tab) {
+        requestTabDetail(tabId, tab => {
             moveTabToWindow(tab, windowId, callback);
         });
     }
     function moveTabToWindow(tab, windowId, callback) {
-        chrome.tabs.move(tab.id, { windowId: windowId, index: -1 });
+        chrome.tabs.move(tab.id, { windowId, index: -1 });
 
-        //NOTE: this move does not seem to trigger any tab event listeners
-        //so we need to update sessions manually
+        // NOTE: this move does not seem to trigger any tab event listeners
+        // so we need to update sessions manually
         spacesService.queueWindowEvent(tab.windowId);
         spacesService.queueWindowEvent(windowId);
 
@@ -1120,10 +1047,10 @@ var spaces = (function() {
     }
 
     return {
-        requestSpaceFromWindowId: requestSpaceFromWindowId,
-        requestCurrentSpace: requestCurrentSpace,
-        requestHotkeys: requestHotkeys,
-        generatePopupParams: generatePopupParams,
+        requestSpaceFromWindowId,
+        requestCurrentSpace,
+        requestHotkeys,
+        generatePopupParams,
     };
 })();
 

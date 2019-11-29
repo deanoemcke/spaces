@@ -1,49 +1,43 @@
-'use strict';
-
+// eslint-disable-next-line no-var
 var spacesRenderer = {
     nodes: {},
     maxSuggestions: 10,
     oneClickMode: false,
 
-    initialise: function(maxSuggestions, oneClickMode) {
-        this.maxSuggestions = maxSuggestions;
-        this.oneClickMode = oneClickMode;
+    initialise: (maxSuggestions, oneClickMode) => {
+        spacesRenderer.maxSuggestions = maxSuggestions;
+        spacesRenderer.oneClickMode = oneClickMode;
 
         // if (maxSuggestions > 7) {
         document.getElementById('spacesList').className = 'scroll';
         // }
 
-        this.nodes = {
+        spacesRenderer.nodes = {
             spacesList: document.getElementById('savedSpaces'),
             newSpace: document.getElementById('newSpace'),
             newSpaceTitle: document.querySelector('#newSpace .spaceTitle'),
             moveInput: document.getElementById('sessionsInput'),
         };
 
-        this.addEventListeners();
+        spacesRenderer.addEventListeners();
     },
 
-    renderSpaces: function(spaces) {
-        var self = this,
-            option,
-            spaceEl;
-
-        spaces.forEach(function(space) {
-            spaceEl = self.renderSpaceEl(space);
-            self.nodes.spacesList.appendChild(spaceEl);
+    renderSpaces: spaces => {
+        spaces.forEach(space => {
+            const spaceEl = spacesRenderer.renderSpaceEl(space);
+            spacesRenderer.nodes.spacesList.appendChild(spaceEl);
         });
-        this.selectSpace(this.getFirstSpaceEl(), false);
+        spacesRenderer.selectSpace(spacesRenderer.getFirstSpaceEl(), false);
 
-        this.updateSpacesList();
+        spacesRenderer.updateSpacesList();
 
-        this.nodes.moveInput.focus();
+        spacesRenderer.nodes.moveInput.focus();
     },
 
-    renderSpaceEl: function(space) {
-        var self = this,
-            listContainer = document.createElement('div'),
-            listTitle = document.createElement('span'),
-            listDetail = document.createElement('span');
+    renderSpaceEl: space => {
+        const listContainer = document.createElement('div');
+        const listTitle = document.createElement('span');
+        const listDetail = document.createElement('span');
 
         listContainer.setAttribute('data-sessionId', space.sessionId);
         listContainer.setAttribute('data-windowId', space.windowId);
@@ -61,42 +55,43 @@ var spacesRenderer = {
 
         listTitle.innerHTML =
             space.name || spacesRenderer.getDefaultSpaceTitle(space);
-        listDetail.innerHTML = this.getTabDetailsString(space);
+        listDetail.innerHTML = spacesRenderer.getTabDetailsString(space);
 
         listContainer.appendChild(listTitle);
         listContainer.appendChild(listDetail);
 
-        //if not in oneClickMode, add a default click handler to select space
-        if (!this.oneClickMode) {
-            listContainer.onclick = function(e) {
-                self.handleSpaceClick(e);
+        // if not in oneClickMode, add a default click handler to select space
+        if (!spacesRenderer.oneClickMode) {
+            listContainer.onclick = e => {
+                spacesRenderer.handleSpaceClick(e);
             };
         }
 
         return listContainer;
     },
 
-    handleSpaceClick: function(e) {
-        var el =
+    handleSpaceClick: e => {
+        const el =
             e.target.tagName === 'SPAN' ? e.target.parentElement : e.target;
-        this.selectSpace(el, !this.oneClickMode);
+        spacesRenderer.selectSpace(el, !spacesRenderer.oneClickMode);
     },
 
-    handleSelectionNavigation: function(direction) {
-        var spaceEls = document.querySelectorAll('#spacesList .space'),
-            prevEl = false,
-            selectNext = false,
-            selectedSpaceEl;
+    handleSelectionNavigation: direction => {
+        const spaceEls = document.querySelectorAll('#spacesList .space');
+        let prevEl = false;
+        let selectNext = false;
+        let selectedSpaceEl;
 
-        Array.prototype.some.call(spaceEls, function(el) {
+        Array.prototype.some.call(spaceEls, el => {
             if (el.style.visibility !== 'visible') return false;
 
-            //locate currently selected space
+            // locate currently selected space
             if (el.className.indexOf('selected') >= 0) {
                 if (direction === 'up' && prevEl) {
                     selectedSpaceEl = prevEl;
                     return true;
-                } else if (direction === 'down') {
+                }
+                if (direction === 'down') {
                     selectNext = true;
                 }
             } else if (selectNext) {
@@ -104,62 +99,61 @@ var spacesRenderer = {
                 return true;
             }
             prevEl = el;
+            return false;
         });
         if (selectedSpaceEl) {
-            this.selectSpace(selectedSpaceEl, !this.oneClickMode);
+            spacesRenderer.selectSpace(
+                selectedSpaceEl,
+                !spacesRenderer.oneClickMode
+            );
         }
     },
 
-    getFirstSpaceEl: function() {
-        var allSpaceEls = document.querySelectorAll('#spacesList .space'),
-            firstSpaceEl = false;
-        Array.prototype.some.call(allSpaceEls, function(spaceEl) {
+    getFirstSpaceEl: () => {
+        const allSpaceEls = document.querySelectorAll('#spacesList .space');
+        let firstSpaceEl = false;
+        Array.prototype.some.call(allSpaceEls, spaceEl => {
             if (spaceEl.style.visibility === 'visible') {
                 firstSpaceEl = spaceEl;
                 return true;
             }
+            return false;
         });
         return firstSpaceEl;
     },
 
-    selectSpace: function(selectedSpaceEl, updateText) {
-        var allSpaceEls = document.querySelectorAll('#spacesList .space'),
-            spaceTitle,
-            spaceEl,
-            windowId,
-            open,
-            selected,
-            i;
+    selectSpace: (selectedSpaceEl, updateText) => {
+        const allSpaceEls = document.querySelectorAll('#spacesList .space');
 
-        for (i = 0; i < allSpaceEls.length; i++) {
-            spaceEl = allSpaceEls[i];
-            windowId = spaceEl.getAttribute('data-windowId');
-            open = windowId && windowId !== 'false';
-            selected = selectedSpaceEl === spaceEl;
+        for (let i = 0; i < allSpaceEls.length; i += 1) {
+            const spaceEl = allSpaceEls[i];
+            const windowId = spaceEl.getAttribute('data-windowId');
+            const open = windowId && windowId !== 'false';
+            const selected = selectedSpaceEl === spaceEl;
             spaceEl.className = 'space';
             if (open) spaceEl.classList.add('open');
             if (selected) spaceEl.classList.add('selected');
         }
 
         if (updateText) {
-            var spaceName = selectedSpaceEl.getAttribute('data-spaceName');
+            const spaceName = selectedSpaceEl.getAttribute('data-spaceName');
             if (spaceName) {
-                this.nodes.moveInput.value = spaceName;
+                spacesRenderer.nodes.moveInput.value = spaceName;
             } else {
-                this.nodes.moveInput.value = '';
-                this.nodes.moveInput.placeholder = selectedSpaceEl.getAttribute(
+                spacesRenderer.nodes.moveInput.value = '';
+                spacesRenderer.nodes.moveInput.placeholder = selectedSpaceEl.getAttribute(
                     'data-placeholder'
                 );
             }
 
-            //this.nodes.moveInput.select();
+            // spacesRenderer.nodes.moveInput.select();
         }
     },
 
-    getDefaultSpaceTitle: function(space) {
-        var count = space.tabs.length;
+    getDefaultSpaceTitle: space => {
+        const count = space.tabs.length;
         if (!count) return '';
-        var firstTitle = space.tabs[0].title;
+        const firstTitle = space.tabs[0].title;
         if (count === 1) {
             return `[${firstTitle}]`;
         }
@@ -168,31 +162,25 @@ var spacesRenderer = {
             : `[${firstTitle}] +${count - 1} more`;
     },
 
-    getTabDetailsString: function(space) {
-        var count = space.tabs.length,
-            open = space.windowId;
+    getTabDetailsString: space => {
+        const count = space.tabs.length;
+        const open = space.windowId;
 
         if (open) {
             return '';
-        } else {
-            return '(' + status + count + ' tab' + (count > 1 ? 's' : '') + ')';
         }
+        return `(${count} tab${count > 1 ? 's' : ''})`;
     },
 
-    updateSpacesList: function() {
-        var self = this,
-            query = this.nodes.moveInput.value,
-            savedSpaceEls,
-            curSpaceName,
-            match = false,
-            exactMatch = false,
-            selectFirst = false,
-            count = 0;
+    updateSpacesList: () => {
+        const query = spacesRenderer.nodes.moveInput.value;
+        let match = false;
+        let exactMatch = false;
 
-        //show all spaces that partially match the query
-        savedSpaceEls = document.querySelectorAll('#savedSpaces .space');
-        Array.prototype.forEach.call(savedSpaceEls, function(spaceEl) {
-            curSpaceName = spaceEl.getElementsByClassName('spaceTitle')[0]
+        // show all spaces that partially match the query
+        const savedSpaceEls = document.querySelectorAll('#savedSpaces .space');
+        Array.prototype.forEach.call(savedSpaceEls, spaceEl => {
+            const curSpaceName = spaceEl.getElementsByClassName('spaceTitle')[0]
                 .innerHTML;
             match =
                 curSpaceName.toLowerCase().indexOf(query.toLowerCase()) !== -1;
@@ -200,45 +188,50 @@ var spacesRenderer = {
                 exactMatch ||
                 query.toLowerCase() === curSpaceName.toLowerCase();
             if (match) {
+                // eslint-disable-next-line no-param-reassign
                 spaceEl.style.display = 'flex';
+                // eslint-disable-next-line no-param-reassign
                 spaceEl.style.visibility = 'visible';
             } else {
+                // eslint-disable-next-line no-param-reassign
                 spaceEl.style.display = 'none';
+                // eslint-disable-next-line no-param-reassign
                 spaceEl.style.visibility = 'hidden';
             }
         });
 
-        //show the 'create new' div if exact match not found
-        if (this.nodes.newSpace) {
+        // show the 'create new' div if exact match not found
+        if (spacesRenderer.nodes.newSpace) {
             if (!exactMatch && query.length > 0) {
-                this.nodes.newSpaceTitle.innerHTML = query;
-                this.nodes.newSpace.setAttribute('data-spaceName', query);
-                this.nodes.newSpace.className = 'space';
-                this.nodes.newSpace.style.display = 'flex';
-                this.nodes.newSpace.style.visibility = 'visible';
+                spacesRenderer.nodes.newSpaceTitle.innerHTML = query;
+                spacesRenderer.nodes.newSpace.setAttribute(
+                    'data-spaceName',
+                    query
+                );
+                spacesRenderer.nodes.newSpace.className = 'space';
+                spacesRenderer.nodes.newSpace.style.display = 'flex';
+                spacesRenderer.nodes.newSpace.style.visibility = 'visible';
             } else {
-                this.nodes.newSpace.style.display = 'none';
-                this.nodes.newSpace.style.visibility = 'hidden';
+                spacesRenderer.nodes.newSpace.style.display = 'none';
+                spacesRenderer.nodes.newSpace.style.visibility = 'hidden';
             }
         }
 
-        //highlight the first space el in the visible list
-        this.selectSpace(this.getFirstSpaceEl(), false);
+        // highlight the first space el in the visible list
+        spacesRenderer.selectSpace(spacesRenderer.getFirstSpaceEl(), false);
     },
 
-    addEventListeners: function() {
-        var self = this;
-
-        this.nodes.moveInput.parentElement.parentElement.onkeyup = function(e) {
-            //listen for 'up' key
+    addEventListeners: () => {
+        spacesRenderer.nodes.moveInput.parentElement.parentElement.onkeyup = e => {
+            // listen for 'up' key
             if (e.keyCode === 38) {
-                self.handleSelectionNavigation('up');
+                spacesRenderer.handleSelectionNavigation('up');
 
-                //listen for 'down' key
+                // listen for 'down' key
             } else if (e.keyCode === 40) {
-                self.handleSelectionNavigation('down');
+                spacesRenderer.handleSelectionNavigation('down');
 
-                //else treat as text input (only trigger on alphanumeric, delete or backspace keys when modifiers are not down)
+                // else treat as text input (only trigger on alphanumeric, delete or backspace keys when modifiers are not down)
             } else if (
                 !e.altKey &&
                 !e.ctrlKey &&
@@ -246,14 +239,13 @@ var spacesRenderer = {
                     e.keyCode === 8 ||
                     (e.keyCode >= 48 && e.keyCode <= 90))
             ) {
-                self.updateSpacesList();
+                spacesRenderer.updateSpacesList();
             }
         };
 
-        if (this.nodes.newSpace) {
-            this.nodes.newSpace.onclick = function(e) {
-                self.handleSpaceClick;
-            };
+        if (spacesRenderer.nodes.newSpace) {
+            spacesRenderer.nodes.newSpace.onclick =
+                spacesRenderer.handleSpaceClick;
         }
     },
 };

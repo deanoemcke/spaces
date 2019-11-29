@@ -1,56 +1,48 @@
-/*global chrome */
+/* global chrome spacesRenderer */
 
-(function() {
-    'use strict';
+(() => {
+    const UNSAVED_SESSION = '(unnamed window)';
+    const NO_HOTKEY = 'no hotkey set';
 
-    var UNSAVED_SESSION = '(unnamed window)',
-        NO_HOTKEY = 'no hotkey set';
-
-    var nodes = {},
-        globalCurrentSpace,
-        globalTabId,
-        globalUrl,
-        globalWindowId,
-        globalSessionName;
+    const nodes = {};
+    let globalCurrentSpace;
+    let globalTabId;
+    let globalUrl;
+    let globalWindowId;
+    let globalSessionName;
 
     /*
      * POPUP INIT
      */
 
-    document.addEventListener('DOMContentLoaded', async function() {
-        var url = chrome.extension
-            .getBackgroundPage()
-            .utils.getHashVariable('url', window.location.href);
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { utils, spaces } = chrome.extension.getBackgroundPage();
+        const url = utils.getHashVariable('url', window.location.href);
         globalUrl = url !== '' ? decodeURIComponent(url) : false;
-        var windowId = chrome.extension
-            .getBackgroundPage()
-            .utils.getHashVariable('windowId', window.location.href);
+        const windowId = utils.getHashVariable(
+            'windowId',
+            window.location.href
+        );
         globalWindowId = windowId !== '' ? windowId : false;
-        globalTabId = chrome.extension
-            .getBackgroundPage()
-            .utils.getHashVariable('tabId', window.location.href);
-        var sessionName = chrome.extension
-            .getBackgroundPage()
-            .utils.getHashVariable('sessionName', window.location.href);
+        globalTabId = utils.getHashVariable('tabId', window.location.href);
+        const sessionName = utils.getHashVariable(
+            'sessionName',
+            window.location.href
+        );
         globalSessionName =
             sessionName && sessionName !== 'false' ? sessionName : false;
-        var action = chrome.extension
-            .getBackgroundPage()
-            .utils.getHashVariable('action', window.location.href);
+        const action = utils.getHashVariable('action', window.location.href);
 
-        var spacesService = chrome.extension.getBackgroundPage().spaces;
-        var requestSpacePromise = globalWindowId
+        const requestSpacePromise = globalWindowId
             ? new Promise(resolve =>
-                  spacesService.requestSpaceFromWindowId(
-                      parseInt(globalWindowId),
+                  spaces.requestSpaceFromWindowId(
+                      parseInt(globalWindowId, 10),
                       resolve
                   )
               )
-            : new Promise(resolve =>
-                  spacesService.requestCurrentSpace(resolve)
-              );
+            : new Promise(resolve => spaces.requestCurrentSpace(resolve));
 
-        requestSpacePromise.then(function(space) {
+        requestSpacePromise.then(space => {
             globalCurrentSpace = space;
             renderCommon();
             routeView(action);
@@ -78,41 +70,38 @@
             ? globalCurrentSpace.name
             : UNSAVED_SESSION;
 
-        document.querySelector('body').onkeyup = function(e) {
-            //listen for escape key
+        document.querySelector('body').onkeyup = e => {
+            // listen for escape key
             if (e.keyCode === 27) {
                 handleCloseAction();
                 // } else if (e.keyCode === 13) {
                 //     handleNameSave();
             }
         };
-        document
-            .getElementById('spaceEdit')
-            .addEventListener('click', function(e) {
-                handleNameEdit();
-            });
+        document.getElementById('spaceEdit').addEventListener('click', () => {
+            handleNameEdit();
+        });
         document
             .getElementById('activeSpaceTitle')
-            .addEventListener('focus', function(e) {
+            .addEventListener('focus', () => {
                 handleNameEdit();
             });
-        document.getElementById('activeSpaceTitle').onkeyup = function(e) {
-            //listen for enter key
+        document.getElementById('activeSpaceTitle').onkeyup = e => {
+            // listen for enter key
             if (e.keyCode === 13) {
                 document.getElementById('activeSpaceTitle').blur();
             }
         };
         document
             .getElementById('activeSpaceTitle')
-            .addEventListener('blur', function(e) {
+            .addEventListener('blur', () => {
                 handleNameSave();
             });
     }
 
     function handleCloseAction() {
-        const opener = chrome.extension
-            .getBackgroundPage()
-            .utils.getHashVariable('opener', window.location.href);
+        const { utils } = chrome.extension.getBackgroundPage();
+        const opener = utils.getHashVariable('opener', window.location.href);
         if (opener && opener === 'bg') {
             chrome.runtime.sendMessage({
                 action: 'requestClose',
@@ -127,22 +116,19 @@
      */
 
     function renderMainCard() {
-        chrome.extension
-            .getBackgroundPage()
-            .spaces.requestHotkeys(function(hotkeys) {
-                document.querySelector(
-                    '#switcherLink .hotkey'
-                ).innerHTML = hotkeys.switchCode
-                    ? hotkeys.switchCode
-                    : NO_HOTKEY;
-                document.querySelector(
-                    '#moverLink .hotkey'
-                ).innerHTML = hotkeys.moveCode ? hotkeys.moveCode : NO_HOTKEY;
-            });
+        const { spaces } = chrome.extension.getBackgroundPage();
+        spaces.requestHotkeys(hotkeys => {
+            document.querySelector(
+                '#switcherLink .hotkey'
+            ).innerHTML = hotkeys.switchCode ? hotkeys.switchCode : NO_HOTKEY;
+            document.querySelector(
+                '#moverLink .hotkey'
+            ).innerHTML = hotkeys.moveCode ? hotkeys.moveCode : NO_HOTKEY;
+        });
 
-        var hotkeyEls = document.querySelectorAll('.hotkey');
-        for (var i = 0; i < hotkeyEls.length; i++) {
-            hotkeyEls[i].addEventListener('click', function(e) {
+        const hotkeyEls = document.querySelectorAll('.hotkey');
+        for (let i = 0; i < hotkeyEls.length; i += 1) {
+            hotkeyEls[i].addEventListener('click', () => {
                 chrome.runtime.sendMessage({
                     action: 'requestShowKeyboardShortcuts',
                 });
@@ -152,7 +138,7 @@
 
         document
             .querySelector('#allSpacesLink .optionText')
-            .addEventListener('click', function(e) {
+            .addEventListener('click', () => {
                 chrome.runtime.sendMessage({
                     action: 'requestShowSpaces',
                 });
@@ -160,34 +146,28 @@
             });
         document
             .querySelector('#switcherLink .optionText')
-            .addEventListener('click', function(e) {
-                chrome.extension
-                    .getBackgroundPage()
-                    .spaces.generatePopupParams('switch')
-                    .then(params => {
-                        if (!params) return;
-                        window.location.hash = params;
-                        window.location.reload();
-                    });
+            .addEventListener('click', () => {
+                spaces.generatePopupParams('switch').then(params => {
+                    if (!params) return;
+                    window.location.hash = params;
+                    window.location.reload();
+                });
                 // renderSwitchCard()
             });
         document
             .querySelector('#moverLink .optionText')
-            .addEventListener('click', function(e) {
-                chrome.extension
-                    .getBackgroundPage()
-                    .spaces.generatePopupParams('move')
-                    .then(params => {
-                        if (!params) return;
-                        window.location.hash = params;
-                        window.location.reload();
-                    });
+            .addEventListener('click', () => {
+                spaces.generatePopupParams('move').then(params => {
+                    if (!params) return;
+                    window.location.hash = params;
+                    window.location.reload();
+                });
                 // renderMoveCard()
             });
     }
 
     function handleNameEdit() {
-        var inputEl = document.getElementById('activeSpaceTitle');
+        const inputEl = document.getElementById('activeSpaceTitle');
         inputEl.focus();
         if (inputEl.value === UNSAVED_SESSION) {
             inputEl.value = '';
@@ -195,8 +175,8 @@
     }
 
     function handleNameSave() {
-        var inputEl = document.getElementById('activeSpaceTitle'),
-            newName = inputEl.value;
+        const inputEl = document.getElementById('activeSpaceTitle');
+        const newName = inputEl.value;
 
         if (
             newName === UNSAVED_SESSION ||
@@ -212,7 +192,7 @@
                     sessionName: newName,
                     sessionId: globalCurrentSpace.sessionId,
                 },
-                function() {}
+                () => {}
             );
         } else {
             chrome.runtime.sendMessage(
@@ -221,7 +201,7 @@
                     sessionName: newName,
                     windowId: globalCurrentSpace.windowId,
                 },
-                function() {}
+                () => {}
             );
         }
     }
@@ -234,20 +214,19 @@
         document.getElementById(
             'popupContainer'
         ).innerHTML = document.getElementById('switcherTemplate').innerHTML;
-        chrome.runtime.sendMessage({ action: 'requestAllSpaces' }, function(
-            spaces
-        ) {
+        chrome.runtime.sendMessage({ action: 'requestAllSpaces' }, spaces => {
             spacesRenderer.initialise(8, true);
             spacesRenderer.renderSpaces(spaces);
 
-            document.getElementById('spaceSelectForm').onsubmit = function(e) {
+            document.getElementById('spaceSelectForm').onsubmit = e => {
                 e.preventDefault();
                 handleSwitchAction(getSelectedSpace());
             };
 
-            var allSpaceEls = document.querySelectorAll('.space');
-            Array.prototype.forEach.call(allSpaceEls, function(el) {
-                el.onclick = function(e) {
+            const allSpaceEls = document.querySelectorAll('.space');
+            Array.prototype.forEach.call(allSpaceEls, el => {
+                // eslint-disable-next-line no-param-reassign
+                el.onclick = () => {
                     handleSwitchAction(el);
                 };
             });
@@ -276,8 +255,8 @@
             'popupContainer'
         ).innerHTML = document.getElementById('moveTemplate').innerHTML;
 
-        //initialise global handles to key elements (singletons)
-        //nodes.home = document.getElementById('spacesHome');
+        // initialise global handles to key elements (singletons)
+        // nodes.home = document.getElementById('spacesHome');
         nodes.body = document.querySelector('body');
         nodes.spaceEditButton = document.getElementById('spaceEdit');
         nodes.moveForm = document.getElementById('spaceSelectForm');
@@ -288,44 +267,41 @@
         nodes.okButton = document.getElementById('moveBtn');
         nodes.cancelButton = document.getElementById('cancelBtn');
 
-        //nodes.home.setAttribute('href', chrome.extension.getURL('spaces.html'));
+        // nodes.home.setAttribute('href', chrome.extension.getURL('spaces.html'));
 
-        nodes.moveForm.onsubmit = function(e) {
+        nodes.moveForm.onsubmit = e => {
             e.preventDefault();
             handleSelectAction();
         };
 
-        nodes.body.onkeyup = function(e) {
-            //highlight ok button when you start typing
+        nodes.body.onkeyup = e => {
+            // highlight ok button when you start typing
             if (nodes.moveInput.value.length > 0) {
                 nodes.okButton.className = 'button okBtn selected';
             } else {
                 nodes.okButton.className = 'button okBtn';
             }
 
-            //listen for escape key
+            // listen for escape key
             if (e.keyCode === 27) {
                 handleCloseAction();
-                return;
             }
         };
 
-        nodes.spaceEditButton.onclick = function(e) {
+        nodes.spaceEditButton.onclick = () => {
             handleEditSpace();
         };
-        nodes.okButton.onclick = function(e) {
+        nodes.okButton.onclick = () => {
             handleSelectAction();
         };
-        nodes.cancelButton.onclick = function(e) {
+        nodes.cancelButton.onclick = () => {
             handleCloseAction();
         };
 
-        //update currentSpaceDiv
-        //nodes.windowTitle.innerHTML = "Current space: " + (globalSessionName ? globalSessionName : 'unnamed');
-        nodes.activeSpaceTitle.innerHTML = globalSessionName
-            ? globalSessionName
-            : '(unnamed)';
-        //selectSpace(nodes.activeSpace);
+        // update currentSpaceDiv
+        // nodes.windowTitle.innerHTML = "Current space: " + (globalSessionName ? globalSessionName : 'unnamed');
+        nodes.activeSpaceTitle.innerHTML = globalSessionName || '(unnamed)';
+        // selectSpace(nodes.activeSpace);
 
         updateTabDetails();
 
@@ -333,17 +309,18 @@
             {
                 action: 'requestAllSpaces',
             },
-            function(spaces) {
-                //remove currently visible space
-                spaces = spaces.filter(function(space) {
-                    return space.windowId != globalWindowId; //loose matching here
+            spaces => {
+                // remove currently visible space
+                const filteredSpaces = spaces.filter(space => {
+                    return space.windowId !== globalWindowId; // loose matching here
                 });
                 spacesRenderer.initialise(5, false);
-                spacesRenderer.renderSpaces(spaces);
+                spacesRenderer.renderSpaces(filteredSpaces);
 
-                var allSpaceEls = document.querySelectorAll('.space');
-                Array.prototype.forEach.call(allSpaceEls, function(el) {
-                    el.onclick = function(e) {
+                const allSpaceEls = document.querySelectorAll('.space');
+                Array.prototype.forEach.call(allSpaceEls, el => {
+                    // eslint-disable-next-line no-param-reassign
+                    el.onclick = () => {
                         handleSelectAction(el);
                     };
                 });
@@ -352,27 +329,27 @@
     }
 
     function updateTabDetails() {
-        var faviconSrc, cleanUrl;
+        let faviconSrc;
 
-        //if we are working with an open chrome tab
-        if (globalTabId) {
+        // if we are working with an open chrome tab
+        if (globalTabId.length > 0) {
             chrome.runtime.sendMessage(
                 {
                     action: 'requestTabDetail',
                     tabId: globalTabId,
                 },
-                function(tab) {
+                tab => {
                     if (tab) {
                         nodes.activeTabTitle.innerHTML = tab.title;
 
-                        //try to get best favicon url path
+                        // try to get best favicon url path
                         if (
                             tab.favIconUrl &&
                             tab.favIconUrl.indexOf('chrome://theme') < 0
                         ) {
                             faviconSrc = tab.favIconUrl;
                         } else {
-                            faviconSrc = 'chrome://favicon/' + tab.url;
+                            faviconSrc = `chrome://favicon/${tab.url}`;
                         }
                         nodes.activeTabFavicon.setAttribute('src', faviconSrc);
 
@@ -381,15 +358,15 @@
                             'Move tab to..'
                         );
 
-                        //nodes.windowTitle.innerHTML = tab.title;
-                        //nodes.windowFavicon.setAttribute('href', faviconSrc);
+                        // nodes.windowTitle.innerHTML = tab.title;
+                        // nodes.windowFavicon.setAttribute('href', faviconSrc);
                     }
                 }
             );
 
-            //else if we are dealing with a url only
+            // else if we are dealing with a url only
         } else if (globalUrl) {
-            cleanUrl =
+            const cleanUrl =
                 globalUrl.indexOf('://') > 0
                     ? globalUrl.substr(
                           globalUrl.indexOf('://') + 3,
@@ -404,11 +381,11 @@
     }
 
     function handleSelectAction() {
-        var selectedSpaceEl = document.querySelector('.space.selected'),
-            sessionId = selectedSpaceEl.getAttribute('data-sessionId'),
-            windowId = selectedSpaceEl.getAttribute('data-windowId'),
-            newSessionName = nodes.moveInput.value,
-            params = {};
+        const selectedSpaceEl = document.querySelector('.space.selected');
+        const sessionId = selectedSpaceEl.getAttribute('data-sessionId');
+        const windowId = selectedSpaceEl.getAttribute('data-windowId');
+        const newSessionName = nodes.moveInput.value;
+        const params = {};
 
         if (sessionId && sessionId !== 'false') {
             params.sessionId = sessionId;
@@ -443,7 +420,7 @@
         }
 
         chrome.runtime.sendMessage(params);
-        //this window will be closed by background script
+        // this window will be closed by background script
     }
     function handleEditSpace() {
         chrome.runtime.sendMessage({

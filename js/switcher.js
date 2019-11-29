@@ -1,6 +1,6 @@
-/*global chrome, dbService, render, createTabHtml */
+/* global chrome, spacesRenderer  */
 
-(function() {
+(() => {
     function getSelectedSpace() {
         return document.querySelector('.space.selected');
     }
@@ -20,31 +20,25 @@
     }
 
     function getSwitchKeycodes(callback) {
-        chrome.runtime.sendMessage({ action: 'requestHotkeys' }, function(
-            commands
-        ) {
+        chrome.runtime.sendMessage({ action: 'requestHotkeys' }, commands => {
+            // eslint-disable-next-line no-console
             console.dir(commands);
 
-            var commandStr = commands.switchCode,
-                keyStrArray,
-                curStr,
-                primaryModifier,
-                secondaryModifier,
-                mainKeyCode;
+            const commandStr = commands.switchCode;
+            const keyStrArray = commandStr.split('+');
 
-            keyStrArray = commandStr.split('+');
+            // get keyStr of primary modifier
+            const primaryModifier = keyStrArray[0];
 
-            //get keyStr of primary modifier
-            primaryModifier = keyStrArray[0];
-
-            //get keyStr of secondary modifier
-            secondaryModifier =
+            // get keyStr of secondary modifier
+            const secondaryModifier =
                 keyStrArray.length === 3 ? keyStrArray[1] : false;
 
-            //get keycode of main key (last in array)
-            curStr = keyStrArray[keyStrArray.length - 1];
+            // get keycode of main key (last in array)
+            const curStr = keyStrArray[keyStrArray.length - 1];
+            let mainKeyCode;
 
-            //TODO: There's others. Period. Up Arrow etc.
+            // TODO: There's others. Period. Up Arrow etc.
             if (curStr === 'Space') {
                 mainKeyCode = 32;
             } else {
@@ -52,45 +46,42 @@
             }
 
             callback({
-                primaryModifier: primaryModifier,
-                secondaryModifier: secondaryModifier,
-                mainKeyCode: mainKeyCode,
+                primaryModifier,
+                secondaryModifier,
+                mainKeyCode,
             });
         });
     }
 
     function addEventListeners() {
-        var selectedSpaceEl;
-        document.getElementById('spaceSelectForm').onsubmit = function(e) {
+        document.getElementById('spaceSelectForm').onsubmit = e => {
             e.preventDefault();
             handleSwitchAction(getSelectedSpace());
         };
 
-        var allSpaceEls = document.querySelectorAll('.space');
-        Array.prototype.forEach.call(allSpaceEls, function(el) {
-            el.onclick = function(e) {
+        const allSpaceEls = document.querySelectorAll('.space');
+        Array.prototype.forEach.call(allSpaceEls, el => {
+            // eslint-disable-next-line no-param-reassign
+            el.onclick = () => {
                 handleSwitchAction(el);
             };
         });
 
-        //Here lies some pretty hacky stuff. Yus! Hax!
-        getSwitchKeycodes(function(keyCodes) {
-            var body = document.querySelector('body');
+        // Here lies some pretty hacky stuff. Yus! Hax!
+        getSwitchKeycodes(() => {
+            const body = document.querySelector('body');
 
-            body.onkeyup = function(e) {
-                //listen for escape key
+            body.onkeyup = e => {
+                // listen for escape key
                 if (e.keyCode === 27) {
                     handleCloseAction();
-                    return;
                 }
             };
         });
     }
 
-    window.onload = function() {
-        chrome.runtime.sendMessage({ action: 'requestAllSpaces' }, function(
-            spaces
-        ) {
+    window.onload = () => {
+        chrome.runtime.sendMessage({ action: 'requestAllSpaces' }, spaces => {
             spacesRenderer.initialise(8, true);
             spacesRenderer.renderSpaces(spaces);
             addEventListeners();
