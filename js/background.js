@@ -699,16 +699,20 @@ var spaces = (() => {
 
     function requestAllSpaces(callback) {
         const sessions = spacesService.getAllSessions();
-        const allSpaces = sessions.map(session => {
-            return {
-                sessionId: session.id,
-                windowId: session.windowId,
-                name: session.name,
-                tabs: session.tabs,
-                history: session.history,
-                lastAccess: session.lastAccess,
-            };
-        });
+        const allSpaces = sessions
+            .map(session => {
+                return {
+                    sessionId: session.id,
+                    windowId: session.windowId,
+                    name: session.name,
+                    tabs: session.tabs,
+                    history: session.history,
+                    lastAccess: session.lastAccess,
+                };
+            })
+            .filter(session => {
+                return session && session.tabs && session.tabs.length > 0;
+            });
 
         // sort results
         allSpaces.sort(spaceDateCompare);
