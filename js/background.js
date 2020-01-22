@@ -701,14 +701,7 @@ var spaces = (() => {
         const sessions = spacesService.getAllSessions();
         const allSpaces = sessions
             .map(session => {
-                return {
-                    sessionId: session.id,
-                    windowId: session.windowId,
-                    name: session.name,
-                    tabs: session.tabs,
-                    history: session.history,
-                    lastAccess: session.lastAccess,
-                };
+                return { sessionId: session.id, ...session };
             })
             .filter(session => {
                 return session && session.tabs && session.tabs.length > 0;
@@ -854,12 +847,14 @@ var spaces = (() => {
     function handleRestoreFromBackup(_spaces, callback) {
         let existingSession;
         let performSave;
-        let triggerCallback;
 
-        _spaces.forEach((space, index, spacesArray) => {
-            existingSession = spacesService.getSessionByName(space.name);
+        const promises = [];
+        for (let i = 0; i < _spaces.length; i += 1) {
+            const space = _spaces[i];
+            existingSession = space.name
+                ? spacesService.getSessionByName(space.name)
+                : false;
             performSave = true;
-            triggerCallback = index === spacesArray.length - 1;
 
             // if session with same name already exist, then prompt to override the existing session
             if (existingSession) {
@@ -873,18 +868,19 @@ var spaces = (() => {
             }
 
             if (performSave) {
-                spacesService.saveNewSession(
-                    space.name,
-                    space.tabs,
-                    false,
-                    () => {
-                        if (triggerCallback) callback(null);
-                    }
+                promises.push(
+                    new Promise(resolve => {
+                        spacesService.saveNewSession(
+                            space.name,
+                            space.tabs,
+                            false,
+                            resolve
+                        );
+                    })
                 );
-            } else if (triggerCallback) {
-                callback(null);
             }
-        });
+        }
+        Promise.all(promises).then(callback);
     }
 
     function handleImportNewSession(urlList, callback) {
