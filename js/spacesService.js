@@ -685,12 +685,11 @@ var spacesService = {
         session.lastAccess = new Date();
 
         // save session to db
-        dbService.createSession(newSession => {
+        dbService.createSession(session, savedSession => {
             // update sessionId in cache
-            // oddly, this seems to get updated without having to do this assignment
-            // session.id = savedSession.id;
+            session.id = savedSession.id;
 
-            callback(newSession);
+            callback(savedSession);
         });
     },
 
