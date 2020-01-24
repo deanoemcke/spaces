@@ -584,9 +584,9 @@ var spacesService = {
         // eslint-disable-next-line no-param-reassign
         session.history = tabBeingRemoved.concat(session.history);
 
-        // trim history for this spae down to last 50 items
+        // trim history for this space down to last 200 items
         // eslint-disable-next-line no-param-reassign
-        session.history = session.history.slice(0, 50);
+        session.history = session.history.slice(0, 200);
 
         return session;
     },
