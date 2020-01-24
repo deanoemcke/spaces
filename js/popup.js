@@ -320,8 +320,10 @@
                 const allSpaceEls = document.querySelectorAll('.space');
                 Array.prototype.forEach.call(allSpaceEls, el => {
                     // eslint-disable-next-line no-param-reassign
-                    el.onclick = () => {
-                        handleSelectAction(el);
+                    const existingClickHandler = el.onclick;
+                    el.onclick = e => {
+                        existingClickHandler(e);
+                        handleSelectAction();
                     };
                 });
             }
