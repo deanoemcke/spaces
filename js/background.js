@@ -551,6 +551,8 @@ var spaces = (() => {
                 spacesPopupWindowId,
                 { populate: true },
                 spacesWindow => {
+                    if (!spacesWindow) return;
+
                     // remove popup from history
                     if (
                         spacesWindow.tabs.length > 0 &&
@@ -760,7 +762,10 @@ var spaces = (() => {
                         if (curSessionTab.pinned) {
                             let pinnedTabId = false;
                             newWindow.tabs.some(curNewTab => {
-                                if (curNewTab.url === curSessionTab.url) {
+                                if (
+                                    curNewTab.url === curSessionTab.url ||
+                                    curNewTab.pendingUrl === curSessionTab.url
+                                ) {
                                     pinnedTabId = curNewTab.id;
                                     return true;
                                 }
